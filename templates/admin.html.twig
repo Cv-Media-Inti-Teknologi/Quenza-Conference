@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{# Master template area ADMIN: sidebar + topbar. Halaman admin extends file ini. #}
+{% block content %}
+<div class="flex min-h-screen">
+    <aside class="w-64 shrink-0 bg-gray-900 text-gray-300 flex flex-col">
+        <div class="h-16 flex items-center px-6 font-bold text-white border-b border-gray-800">
+            Admin Oceri
+        </div>
+        <nav class="p-4 space-y-1 text-sm">
+            <a href="/admin" class="block rounded-lg px-3 py-2 hover:bg-gray-800">Dashboard</a>
+            <a href="#" class="block rounded-lg px-3 py-2 hover:bg-gray-800">Peserta</a>
+            <a href="#" class="block rounded-lg px-3 py-2 hover:bg-gray-800">Acara</a>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center px-8 font-semibold">
+            {% block header %}{% endblock %}
+        </header>
+        <main class="p-8">
+            {% block page %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

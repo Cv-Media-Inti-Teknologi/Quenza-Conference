@@ -1,0 +1,6 @@
+/vendor/
+/db/*.sqlite-journal
+/db/*.sqlite-wal
+/db/*.sqlite-shm
+.DS_Store
+Thumbs.db

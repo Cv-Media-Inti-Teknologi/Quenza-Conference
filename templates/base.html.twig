@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Oceri{% endblock %} · Quenza Conference</title>
+    {# Tailwind via CDN: TANPA build step. Dilarang ganti ke npm/Vite/PostCSS (lihat AGENTS.md). #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block styles %}{% endblock %}
+</head>
+<body class="min-h-full antialiased text-gray-900">
+    {% block content %}{% endblock %}
+</body>
+</html>

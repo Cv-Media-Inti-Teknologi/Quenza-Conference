@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{# Master template halaman PUBLIK: navbar + footer. Halaman publik extends file ini. #}
+{% block content %}
+<nav class="bg-white border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <a href="/" class="font-bold text-lg text-indigo-600">Oceri</a>
+        <div class="flex gap-6 text-sm text-gray-600">
+            <a href="/" class="hover:text-indigo-600">Beranda</a>
+            <a href="/login" class="hover:text-indigo-600">Masuk</a>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 py-10">
+    {% block page %}{% endblock %}
+</main>
+
+<footer class="border-t border-gray-200 mt-16">
+    <p class="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-500">
+        © {{ "now"|date("Y") }} Oceri · Quenza Conference System
+    </p>
+</footer>
+{% endblock %}
