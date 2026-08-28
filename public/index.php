@@ -1,23 +1,20 @@
 <?php
 
-declare(strict_types=1);
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
-use Slim\Factory\AppFactory;
+define('LARAVEL_START', microtime(true));
 
-require __DIR__ . '/../vendor/autoload.php';
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
 
-$app = AppFactory::create();
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
 
-// base path kosong karena di-serve dari public/
-$app->setBasePath('');
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
 
-(require __DIR__ . '/../src/Routes.php')($app);
-
-// Error handler terperinci hanya saat development
-$displayErrorDetails = filter_var(
-    getenv('APP_DEBUG') ?: 'true',
-    FILTER_VALIDATE_BOOL
-);
-$app->addErrorMiddleware($displayErrorDetails, true, true);
-
-$app->run();
+$app->handleRequest(Request::capture());
