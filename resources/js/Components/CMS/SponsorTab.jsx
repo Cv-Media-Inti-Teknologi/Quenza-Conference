@@ -227,10 +227,7 @@ export default function SponsorTab({ data, setData, errors, onSave, onPreview, p
                                         <option value="Platinum Sponsor">Platinum Sponsor</option>
                                         <option value="Gold Sponsor">Gold Sponsor</option>
                                         <option value="Silver Sponsor">Silver Sponsor</option>
-                                        <option value="Technical Co-Sponsor">Technical Co-Sponsor</option>
                                         <option value="Media Partner">Media Partner</option>
-                                        <option value="Academic Partner">Academic Partner</option>
-                                        <option value="Supporting Institution">Supporting Institution</option>
                                     </select>
                                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

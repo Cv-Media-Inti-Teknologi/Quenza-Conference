@@ -132,16 +132,16 @@ class LandingContent extends Model
                     [
                         'id' => 'sponsor-2',
                         'name' => 'IEEE Indonesia Section',
-                        'tier' => 'Technical Co-Sponsor',
+                        'tier' => 'Gold Sponsor',
                         'logo' => 'https://upload.wikimedia.org/wikipedia/commons/2/21/IEEE_logo.svg',
                         'website_url' => 'https://ieee.org',
                     ],
                     [
                         'id' => 'sponsor-3',
-                        'name' => 'Kemendikbudristek',
-                        'tier' => 'Supporting Institution',
+                        'name' => 'Kompas Media',
+                        'tier' => 'Media Partner',
                         'logo' => 'https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg',
-                        'website_url' => 'https://kemdikbud.go.id',
+                        'website_url' => 'https://kompas.com',
                     ],
                 ],
             ]);

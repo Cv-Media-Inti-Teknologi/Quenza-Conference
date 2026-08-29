@@ -21,7 +21,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'is_verified',
+        'status',
         'avatar',
+        'institution',
+        'phone',
+        'expertise',
     ];
 
     /**
@@ -43,6 +48,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'is_verified' => 'boolean',
         ];
     }
 
@@ -65,5 +71,21 @@ class User extends Authenticatable
     public function isParticipant(): bool
     {
         return $this->role === 'participant';
+    }
+
+    // Status & Verification Helper Methods
+    public function isVerified(): bool
+    {
+        return (bool) $this->is_verified;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->status === 'blocked';
     }
 }
