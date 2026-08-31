@@ -176,6 +176,12 @@ export default function Login() {
                                 'Masuk ke Sistem'
                             )}
                         </button>
+                        <p className="text-center text-quenza-small text-gray-600 mt-6">
+                            Belum punya akun?{' '}
+                            <Link href="/register" className="text-quenza-secondary font-quenza-semibold hover:underline">
+                                Registrasi
+                            </Link>
+                        </p>
                     </form>
                 </div>
             </div>

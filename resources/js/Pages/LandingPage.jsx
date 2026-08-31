@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
-export default function LandingPage({ landingData }) {
+export default function LandingPage({ landingData, auth }) {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-
+    const [showUserMenu, setShowUserMenu] = useState(false);
     const slides = Array.isArray(landingData?.slider_images) ? landingData.slider_images : [];
     const speakers = Array.isArray(landingData?.speakers) ? landingData.speakers : [];
     const dates = Array.isArray(landingData?.important_dates) ? landingData.important_dates : [];
@@ -54,20 +54,85 @@ export default function LandingPage({ landingData }) {
                     </nav>
 
                     {/* Auth CTA */}
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/login"
-                            className="px-5 py-2.5 rounded-quenza-md text-quenza-medium font-quenza-semibold text-gray-700 hover:bg-gray-100/80 transition-colors"
-                        >
-                            Masuk
-                        </Link>
-                        <Link
-                            href="/login"
-                            className="quenza-btn-secondary text-quenza-medium font-quenza-semibold px-5 py-2.5 rounded-quenza-md text-white shadow-xs hover:brightness-105 transition-all"
-                        >
-                            Daftar Sekarang
-                        </Link>
-                    </div>
+                    {auth?.user ? (
+                        <div className="flex items-center gap-3 relative">
+                            <Link
+                                href="/portal"
+                                className="hidden sm:inline-flex quenza-btn-outline text-quenza-medium font-quenza-semibold px-5 py-2.5 rounded-quenza-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+                            >
+                                Pantau Hasil Paper
+                            </Link>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowUserMenu((prev) => !prev)}
+                                className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                            >
+                                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300 bg-gray-200 shrink-0">
+                                    {auth.user.avatar ? (
+                                        <img src={auth.user.avatar} alt={auth.user.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-600 font-quenza-bold text-quenza-small">
+                                            {auth.user.name?.[0] || 'U'}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-quenza-small font-quenza-semibold text-gray-700 hidden sm:inline">
+                                    {auth.user.name}
+                                </span>
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            {showUserMenu && (
+                                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-quenza-lg border border-gray-200 shadow-lg py-2 z-50">
+                                    <Link
+                                        href="/portal"
+                                        className="sm:hidden block px-4 py-2 text-quenza-small text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Pantau Hasil Paper
+                                    </Link>
+                                    {auth.user.role === 'super_admin' && (
+                                        <Link
+                                            href="/admin/dashboard"
+                                            className="block px-4 py-2 text-quenza-small text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Panel Admin
+                                        </Link>
+                                    )}
+                                    <Link
+                                        href="/profile"
+                                        className="block px-4 py-2 text-quenza-small text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Profil Saya
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => router.post('/logout')}
+                                        className="w-full text-left px-4 py-2 text-quenza-small text-red-600 hover:bg-red-50 cursor-pointer"
+                                    >
+                                        Keluar (Logout)
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/login"
+                                className="px-5 py-2.5 rounded-quenza-md text-quenza-medium font-quenza-semibold text-gray-700 hover:bg-gray-100/80 transition-colors"
+                            >
+                                Masuk
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="quenza-btn-secondary text-quenza-medium font-quenza-semibold px-5 py-2.5 rounded-quenza-md text-white shadow-xs hover:brightness-105 transition-all"
+                            >
+                                Daftar Sekarang
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </header>
 

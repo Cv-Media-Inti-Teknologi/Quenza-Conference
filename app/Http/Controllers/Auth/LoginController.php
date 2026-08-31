@@ -43,7 +43,7 @@ class LoginController extends Controller
                 return redirect()->intended('/admin/dashboard');
             }
 
-            return redirect()->intended('/portal');
+            return redirect('/');
         }
 
         return back()->withErrors([
