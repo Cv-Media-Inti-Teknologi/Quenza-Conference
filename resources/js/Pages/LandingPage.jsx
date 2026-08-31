@@ -47,9 +47,9 @@ export default function LandingPage({ landingData, auth }) {
                     {/* Nav Links */}
                     <nav className="hidden md:flex items-center gap-8 text-quenza-medium font-quenza-medium text-gray-600">
                         <a href="#about" className="hover:text-quenza-secondary transition-colors">Tentang</a>
-                        <a href="#speakers" className="hover:text-quenza-secondary transition-colors">Pembicara</a>
-                        <a href="#timeline" className="hover:text-quenza-secondary transition-colors">Linimasa</a>
-                        <a href="#pricing" className="hover:text-quenza-secondary transition-colors">Paket Registrasi</a>
+                        <a href="speaker" className="hover:text-quenza-secondary transition-colors">Pembicara</a>
+                        <a href="timeline" className="hover:text-quenza-secondary transition-colors">Linimasa</a>
+                        <a href="pricing" className="hover:text-quenza-secondary transition-colors">Paket Registrasi</a>
                         <a href="#sponsors" className="hover:text-quenza-secondary transition-colors">Sponsor</a>
                     </nav>
 

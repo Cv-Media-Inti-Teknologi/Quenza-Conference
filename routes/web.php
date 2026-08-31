@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
 Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::get('/speaker', [LandingController::class, 'speaker'])->name('speaker');
+Route::get('/timeline', [LandingController::class, 'timeline'])->name('timeline');
+Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
