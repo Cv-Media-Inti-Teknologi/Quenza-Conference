@@ -16,9 +16,19 @@ class LandingController extends Controller
     public function index(): Response
     {
         $landingData = LandingContent::current();
+        $user = auth()->user();
 
         return Inertia::render('LandingPage', [
             'landingData' => $landingData,
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar,
+                ] : null,
+            ],
         ]);
     }
 }

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             UserSeeder::class,
             LandingContentSeeder::class,
+            PaperSeeder::class,
         ]);
     }
 }
