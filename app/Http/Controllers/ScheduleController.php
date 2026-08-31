@@ -67,11 +67,11 @@ class ScheduleController extends Controller
     public function autoSchedule(Request $request)
     {
         // =========================================================================
-        // BAGIAN 1: PERSIAPAN DATA (DUMMY VS REAL DATABASE)
+        // BAGIAN 1: PERSIAPAN DATA (DUMMY dan REAL DATABASE)
         // =========================================================================
         
         // [REAL DATABASE - TODO BACKEND]:
-        // Nanti kalau tabel database sudah jadi, HAPUS dummy array di bawah dan UNCOMMENT baris ini:
+        // Nanti kalau tabel database udah jadi, HAPUS dummy array di bawah dan UNCOMMENT baris ini:
         // $papers = \App\Models\Paper::with('author')->where('status', 'accepted')->get()->map(function($p) {
         //     return [
         //         'id' => $p->id,

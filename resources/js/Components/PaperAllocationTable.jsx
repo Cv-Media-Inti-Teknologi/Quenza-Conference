@@ -2,10 +2,10 @@ import React from 'react';
 
 export default function PaperAllocationTable({ allocations }) {
     return (
-        <div className="quenza-card rounded-quenza-xl mt-6">
+        <div id="allocation-table-section" className="quenza-card rounded-quenza-xl mt-6 scroll-mt-24">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h3 id="allocation-table-section" className="text-quenza-large font-quenza-bold text-quenza-text-primary scroll-mt-6">Alokasikan Paper ke Sesi Ruangan</h3>
+                    <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Alokasikan Paper ke Sesi Ruangan</h3>
                     <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Daftar penempatan paper berdasarkan kesesuaian topik</p>
                 </div>
                 <span className="quenza-badge-success">Tervalidasi</span>
