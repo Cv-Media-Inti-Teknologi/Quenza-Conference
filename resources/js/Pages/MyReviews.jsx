@@ -122,7 +122,7 @@ export default function MyReviews() {
                                 <tbody>
                                     {reviews.map((review, index) => (
                                         <tr key={index} className="border-b border-quenza-border hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-quenza-semibold text-quenza-text-primary">P-{String(review.paper_id).padStart(3, '0')}</td>
+                                            <td className="px-4 py-3 font-quenza-semibold text-quenza-text-primary">{review.paper_id}</td>
                                             <td className="px-4 py-3 font-quenza-medium max-w-xs truncate text-quenza-text-primary">{review.title}</td>
                                             <td className="px-4 py-3 text-quenza-text-secondary font-quenza-regular">{review.track}</td>
                                             <td className="px-4 py-3">
@@ -137,7 +137,7 @@ export default function MyReviews() {
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 <a
-                                                    href={`/reviewer/review/${review.paper_id}`}
+                                                    href={`/reviewer/review/${review.paper_id.replace('P-', '')}`}
                                                     className="quenza-btn-primary text-quenza-small px-3 py-1.5"
                                                 >
                                                     {getActionLabel(review.status)}

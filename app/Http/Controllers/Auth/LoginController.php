@@ -43,7 +43,11 @@ class LoginController extends Controller
                 return redirect()->intended('/admin/dashboard');
             }
 
-            return redirect('/');
+            if ($user->isReviewer()) {
+                return redirect()->intended('/reviewer/dashboard');
+            }
+
+            return redirect('/portal');
         }
 
         return back()->withErrors([

@@ -47,6 +47,18 @@ class ReviewerController extends Controller
         ]);
     }
 
+    public function reviews()
+    {
+        return Inertia::render('MyReviews');
+    }
+
+    public function reviewDetail($paperId)
+    {
+        return Inertia::render('ReviewDetail', [
+            'paperId' => (int) $paperId,
+        ]);
+    }
+
     public function getMyReviews(Request $request): JsonResponse
     {
         $reviewerId = auth()->id();

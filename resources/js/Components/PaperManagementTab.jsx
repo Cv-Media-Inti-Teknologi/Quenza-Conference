@@ -143,12 +143,20 @@ export default function PaperManagementTab() {
                     <PaperStatusBadge status={paper.status} />
                   </td>
                   <td className="py-3.5 px-4 text-center">
-                    <button
-                      onClick={() => handleViewDetail(paper)}
-                      className="text-quenza-primary hover:text-quenza-primary/80 transition-colors focus:outline-none font-quenza-semibold text-quenza-small"
-                    >
-                      Detail
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 rounded-quenza-md border border-gray-200 text-quenza-small text-quenza-text-secondary hover:bg-gray-50"
+                      >
+                        Reviewer AI
+                      </button>
+                      <button
+                        onClick={() => handleViewDetail(paper)}
+                        className="px-3 py-1.5 rounded-quenza-md border border-gray-200 text-quenza-small text-quenza-primary hover:bg-gray-50"
+                      >
+                        Detail
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

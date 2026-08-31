@@ -88,7 +88,7 @@ export default function ReviewerDashboard({ pending_count, completed_count, tota
                                             <td className="px-4 py-3 text-quenza-text-secondary font-quenza-regular">{paper.assigned_date}</td>
                                             <td className="px-4 py-3 text-center">
                                                 <Link
-                                                    href={`/reviewer/api/review/${paper.paper_id}`}
+                                                    href={`/reviewer/review/${paper.paper_id}`}
                                                     className="quenza-btn-primary text-quenza-small px-3 py-1.5"
                                                 >
                                                     Review

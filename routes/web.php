@@ -67,6 +67,8 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
 // Reviewer Portal routes
 Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function () {
     Route::get('/dashboard', [ReviewerController::class, 'dashboard'])->name('reviewer.dashboard');
+    Route::get('/reviews', [ReviewerController::class, 'reviews'])->name('reviewer.reviews');
+    Route::get('/review/{paperId}', [ReviewerController::class, 'reviewDetail'])->name('reviewer.review.detail');
     Route::get('/api/reviews', [ReviewerController::class, 'getMyReviews']);
     Route::get('/api/review/{paperId}', [ReviewerController::class, 'getReviewDetail']);
     Route::post('/api/review/{paperId}/submit', [ReviewerController::class, 'submitReview']);

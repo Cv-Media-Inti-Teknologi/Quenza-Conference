@@ -88,6 +88,13 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen
         }
     ];
 
+    const visibleMenus = user.role === 'reviewer'
+        ? menus.slice(0, 2).map((menu) => ({
+            ...menu,
+            url: menu.name === 'Dashboard' ? '/reviewer/dashboard' : '/reviewer/reviews',
+        }))
+        : menus;
+
     const handleToggle = () => {
         if (toggleSidebar) {
             toggleSidebar();
@@ -115,7 +122,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen
 
                 {/* Navigation Menu */}
                 <nav className="flex-1 px-5 space-y-2 overflow-y-auto quenza-scrollbar">
-                    {menus.map((menu, i) => {
+                    {visibleMenus.map((menu, i) => {
                         const isActive = url === menu.url;
                         return (
                             <Link

@@ -17,6 +17,7 @@ class PaperReview extends Model
         'reviewer_id',
         'score',
         'comment',
+        'decision',
         'status',
         'submitted_at',
     ];

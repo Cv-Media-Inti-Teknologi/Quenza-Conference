@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useRoute } from '@inertiajs/react';
 import AdminLayout from '../Layouts/AdminLayout';
 import ReviewForm from '../Components/ReviewForm';
 import { Head } from '@inertiajs/react';
 
-export default function ReviewDetail() {
-    const route = useRoute();
-    const paperId = route.params.paperId;
+export default function ReviewDetail({ paperId }) {
     const [paper, setPaper] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
