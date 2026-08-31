@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -50,6 +51,16 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_verified' => 'boolean',
         ];
+    }
+
+    public function papers(): HasMany
+    {
+        return $this->hasMany(Paper::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(PaperReview::class, 'reviewer_id');
     }
 
     // Role Helper Methods
