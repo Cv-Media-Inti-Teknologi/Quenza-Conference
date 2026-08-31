@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PaperDetailModal from './PaperDetailModal';
 import PaperStatusBadge from './PaperStatusBadge';
+import AiReviewerModal from './AiReviewerModal';
 
 export default function PaperManagementTab() {
   const [papers, setPapers] = useState([]);
@@ -10,6 +11,9 @@ export default function PaperManagementTab() {
   const [trackFilter, setTrackFilter] = useState('Semua Track');
   const [selectedPaper, setSelectedPaper] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [loadingAiFor, setLoadingAiFor] = useState(null);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [selectedAiPaper, setSelectedAiPaper] = useState(null);
 
   const tracks = ['Semua Track', 'AI & Data Science', 'Pendidikan Digital', 'Kesehatan Masyarakat', 'Ekonomi Digital'];
   const statuses = ['Semua Status', 'submitted', 'under_review', 'revision_required', 'accepted', 'rejected'];
@@ -46,6 +50,21 @@ export default function PaperManagementTab() {
       setShowDetailModal(true);
     } catch (error) {
       console.error('Error fetching paper detail:', error);
+    }
+  };
+
+  const handleViewAiRecommendations = async (paper) => {
+    try {
+      setLoadingAiFor(paper.id);
+      const paperId = paper.id.replace('P-', '');
+      const response = await fetch(`/admin/api/papers/${paperId}/ai-recommendations`);
+      const data = await response.json();
+      setSelectedAiPaper(data);
+      setShowAiModal(true);
+    } catch (error) {
+      console.error('Error fetching AI recommendations:', error);
+    } finally {
+      setLoadingAiFor(null);
     }
   };
 
@@ -146,9 +165,20 @@ export default function PaperManagementTab() {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        className="px-3 py-1.5 rounded-quenza-md border border-gray-200 text-quenza-small text-quenza-text-secondary hover:bg-gray-50"
+                        onClick={() => handleViewAiRecommendations(paper)}
+                        disabled={loadingAiFor === paper.id}
+                        className={`px-3 py-1.5 rounded-quenza-md border text-quenza-small transition-colors ${
+                          loadingAiFor === paper.id 
+                            ? 'bg-purple-50 border-purple-200 text-purple-600 cursor-not-allowed' 
+                            : 'border-gray-200 text-quenza-text-secondary hover:bg-gray-50'
+                        }`}
                       >
-                        Reviewer AI
+                        {loadingAiFor === paper.id ? (
+                          <span className="flex items-center gap-1">
+                            <svg className="animate-spin h-3 w-3 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Loading...
+                          </span>
+                        ) : 'Reviewer AI'}
                       </button>
                       <button
                         onClick={() => handleViewDetail(paper)}
@@ -170,6 +200,16 @@ export default function PaperManagementTab() {
           paper={selectedPaper}
           onClose={() => setShowDetailModal(false)}
           onStatusChange={fetchPapers}
+        />
+      )}
+
+      {showAiModal && (
+        <AiReviewerModal
+          paper={selectedAiPaper}
+          onClose={() => setShowAiModal(false)}
+          onApprove={(reviewer) => {
+            alert(`Fitur belum aktif: Assign Reviewer ${reviewer.name} ke paper ${selectedAiPaper.id}`);
+          }}
         />
       )}
     </div>
