@@ -61,10 +61,13 @@ Daftar Reviewer Tersedia:
         
         if (empty($apiKey)) {
             Log::warning('OPENAI_API_KEY is not set. Returning fallback recommendations.');
-            return [];
+            $errorMessage = 'OPENAI_API_KEY tidak ditemukan di .env';
+        } else {
+            $errorMessage = 'Gagal terhubung ke AI Gateway Quenza.';
         }
 
-        try {
+        if (!empty($apiKey)) {
+            try {
             $response = Http::withoutVerifying()
                 ->withToken($apiKey)
                 ->withHeaders([
@@ -98,21 +101,24 @@ Daftar Reviewer Tersedia:
                     return $data['recommendations'];
                 }
             } else {
+                $errorMessage = 'API Error (' . $response->status() . '). Coba lagi nanti.';
                 Log::error('LLM API Error: ' . $response->body());
             }
 
         } catch (\Exception $e) {
+            $errorMessage = 'Timeout / Koneksi Terputus: ' . $e->getMessage();
             Log::error('Exception in AI Recommendation: ' . $e->getMessage());
+        }
         }
 
         // Return mock data if API fails so the UI can still be seen
         return [
             [
                 'id' => 1,
-                'name' => 'Dr. Simulasi (API Error)',
-                'expertise' => 'Data dummy karena API Key tidak valid',
-                'match_score_percentage' => 85,
-                'reason' => 'API Key OpenAI yang Anda masukkan salah atau kadaluarsa. Ini adalah data simulasi agar UI tetap terlihat.'
+                'name' => 'Dr. Simulasi (Sistem Fallback)',
+                'expertise' => 'Status Server AI: Bermasalah',
+                'match_score_percentage' => 0,
+                'reason' => 'Gagal mengambil rekomendasi asli karena: ' . $errorMessage
             ]
         ];
     }
