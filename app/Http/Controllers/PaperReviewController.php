@@ -88,18 +88,18 @@ class PaperReviewController extends Controller
                     'submitted_at' => $review->submitted_at?->format('d/m/Y H:i'),
                 ];
             })->toArray(),
-            'recommended_reviewers' => [
-                [
-                    'id' => 1,
-                    'name' => 'Dr. Santoso',
-                    'expertise' => 'IoT & Embedded Systems',
-                ],
-                [
-                    'id' => 2,
-                    'name' => 'Prof. Lili Ayu',
-                    'expertise' => 'Machine Learning',
-                ],
-            ],
+        ]);
+    }
+
+    public function getAiRecommendations($id, \App\Services\AiRecommendationService $aiService): JsonResponse
+    {
+        $paper = Paper::findOrFail($id);
+        
+        $recommendedReviewers = $aiService->getRecommendations($paper);
+        
+        return response()->json([
+            'id' => 'P-' . str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
+            'recommended_reviewers' => $recommendedReviewers,
         ]);
     }
 
