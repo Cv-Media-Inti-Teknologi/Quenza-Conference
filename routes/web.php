@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CmsLandingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -15,10 +17,16 @@ Route::get('/', [LandingController::class, 'index'])->name('home');
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
+Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // User Portal / Login Success Test Page
 Route::middleware('auth')->get('/portal', [PortalController::class, 'index'])->name('portal');
+
+// User Profile Routes
+Route::middleware('auth')->get('/profile', [ProfileController::class, 'show'])->name('profile');
+Route::middleware('auth')->post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
 // Admin Routes (Group protected by auth and role:super_admin middleware)
 Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function () {
