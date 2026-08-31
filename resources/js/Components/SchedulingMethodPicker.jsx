@@ -7,7 +7,15 @@ export default function SchedulingMethodPicker({ activeMethod, setActiveMethod }
     const triggerAutoSchedule = () => {
         setActiveMethod('ai');
         post('/admin/schedule/auto', {
-            preserveScroll: true
+            preserveScroll: true,
+            onSuccess: () => {
+                // Scroll turun sekitar 40% dari tinggi layar
+                window.scrollBy({ 
+                    top: window.innerHeight * 0.4, 
+                    left: 0, 
+                    behavior: 'smooth' 
+                });
+            }
         });
     };
 
