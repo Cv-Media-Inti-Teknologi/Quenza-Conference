@@ -43,7 +43,7 @@ class PaperReviewController extends Controller
 
         $data = $papers->map(function ($paper) {
             return [
-                'id' => 'P-' . str_pad($paper->id, 3, '0', STR_PAD_LEFT),
+                'id' => 'P-' . str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
                 'title' => $paper->title,
                 'track' => $paper->track,
                 'similarity_score' => $paper->similarity_score,
