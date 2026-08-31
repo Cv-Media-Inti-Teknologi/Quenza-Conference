@@ -67,91 +67,141 @@ class ScheduleController extends Controller
     public function autoSchedule(Request $request)
     {
         // =========================================================================
-        // BAGIAN 1: PERSIAPAN DATA (DUMMY dan REAL DATABASE)
+        // BAGIAN 1: PERSIAPAN DATA (DUMMY VS REAL DATABASE)
         // =========================================================================
-        
-        // [REAL DATABASE - TODO BACKEND]:
-        // Nanti kalau tabel database udah jadi, HAPUS dummy array di bawah dan UNCOMMENT baris ini:
-        // $papers = \App\Models\Paper::with('author')->where('status', 'accepted')->get()->map(function($p) {
-        //     return [
-        //         'id' => $p->id,
-        //         'paper' => $p->title,
-        //         'author_id' => $p->author_id,
-        //         'author_name' => $p->author->name,
-        //         'topic_match' => $p->topic_id, // Asumsi ada relasi topik ke ruangan
-        //     ];
-        // })->toArray();
-        
+
+        // [DUMMY CONFIGURATION - DARI ADMIN SETTINGS]:
+        // Misal: Admin mengatur event 2 hari, tiap hari sesi paralel 240 menit (4 jam), tiap orang dijatah 60 menit (1 jam).
+        $config = [
+            'total_days' => 2,
+            'daily_duration_minutes' => 240, 
+            'time_per_author_minutes' => 60,
+            'start_time' => '13:00' // Sesi dimulai jam 1 siang setiap hari
+        ];
+
         // [DUMMY DATA SEMENTARA]:
-        // 1. Data Papers (Perhatikan 'Kevin Wijaya' punya 2 paper!)
+        // Data Papers dengan status pembayaran (is_paid) dan tipe presentasi (type)
         $papers = [
-            ['id' => 1, 'paper' => 'Federated Learning for Edge IoT Devices', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1],
-            ['id' => 2, 'paper' => 'Explainable AI in Medical Diagnosis', 'author_id' => 'USR-02', 'author_name' => 'Nadia Putri', 'topic_match' => 1],
-            ['id' => 3, 'paper' => 'Advanced Neural Networks', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1], // Paper ke-2 Kevin
-            ['id' => 4, 'paper' => 'Microservice Resilience Patterns', 'author_id' => 'USR-03', 'author_name' => 'Farhan Aditya', 'topic_match' => 2],
-            ['id' => 5, 'paper' => 'Docker Orchestration', 'author_id' => 'USR-04', 'author_name' => 'Budi Santoso', 'topic_match' => 2],
-            ['id' => 6, 'paper' => 'Real-Time Stream Processing at Scale', 'author_id' => 'USR-05', 'author_name' => 'Grace Amelia', 'topic_match' => 3],
+            ['id' => 1, 'paper' => 'Federated Learning for Edge IoT Devices', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'],
+            ['id' => 2, 'paper' => 'Explainable AI in Medical Diagnosis', 'author_id' => 'USR-02', 'author_name' => 'Nadia Putri', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'],
+            ['id' => 3, 'paper' => 'Advanced Neural Networks', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // Paper ke-2 Kevin
+            ['id' => 4, 'paper' => 'Microservice Resilience Patterns', 'author_id' => 'USR-03', 'author_name' => 'Farhan Aditya', 'topic_match' => 2, 'is_paid' => true, 'type' => 'oral'],
+            ['id' => 5, 'paper' => 'Docker Orchestration', 'author_id' => 'USR-04', 'author_name' => 'Budi Santoso', 'topic_match' => 2, 'is_paid' => false, 'type' => 'oral'], // Belum bayar, harusnya diskip
+            ['id' => 6, 'paper' => 'Real-Time Stream Processing at Scale', 'author_id' => 'USR-05', 'author_name' => 'Grace Amelia', 'topic_match' => 3, 'is_paid' => true, 'type' => 'poster'], // Tipe poster
+            ['id' => 7, 'paper' => 'AI for Smart Farming', 'author_id' => 'USR-06', 'author_name' => 'Bambang Pamungkas', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // 4th oral in topic 1
+            ['id' => 8, 'paper' => 'Computer Vision in Agrotech', 'author_id' => 'USR-07', 'author_name' => 'Siti Aminah', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // 5th oral in topic 1 -> will spillover to Day 2
         ];
 
-        // [REAL DATABASE - TODO BACKEND]:
-        // $rooms = \App\Models\Room::pluck('name', 'id')->toArray();
-        
-        // [DUMMY DATA SEMENTARA]:
-        // 2. Data Rooms (Kapasitas waktu diasumsikan sederhana: slot 1, slot 2, slot 3)
+        // 2. Data Rooms
         $rooms = [
-            1 => 'Ruang Garuda',
-            2 => 'Ruang Kartika',
-            3 => 'Virtual Room A'
-        ];
-
-        // [REAL DATABASE - TODO BACKEND]:
-        // Harusnya digenerate dinamis dari parameter tabel settings (start_time s/d end_time)
-        // [DUMMY DATA SEMENTARA]:
-        $timeSlots = [
-            1 => '11:00',
-            2 => '11:55',
-            3 => '13:30'
+            1 => 'Ruang Garuda (Topic 1)',
+            2 => 'Ruang Kartika (Topic 2)',
+            3 => 'Virtual Room A (Topic 3)'
         ];
 
         // =========================================================================
-        // BAGIAN 2: LOGIKA ALGORITMA GREEDY (TIDAK PERLU DIUBAH OLEH BACKEND)
+        // BAGIAN 2: LOGIKA ALGORITMA GREEDY MULTI-DAY
         // =========================================================================
-        // --- ALGORITMA GREEDY PENJADWALAN BEBAS BENTROK ---
         $allocations = [];
-        $roomSchedules = [1 => [], 2 => [], 3 => []]; // Mencatat slot mana yang sudah terisi di ruangan
-        $authorSchedules = []; // Mencatat slot mana yang Author tersebut sedang presentasi
+        
+        // Filter paper: Hanya yang sudah BAYAR
+        $eligiblePapers = array_filter($papers, function($p) {
+            return $p['is_paid'] === true;
+        });
 
-        foreach ($papers as $paper) {
-            $roomId = $paper['topic_match']; 
+        // Pisahkan antrean Oral dan Poster
+        $oralPapers = array_filter($eligiblePapers, function($p) { return $p['type'] === 'oral'; });
+        $posterPapers = array_filter($eligiblePapers, function($p) { return $p['type'] === 'poster'; });
+
+        // State untuk melacak penggunaan waktu per ruangan per hari
+        // Bentuk: $roomUsage[room_id][day] = total_minutes_used
+        $roomUsage = [];
+        
+        // State untuk melacak jadwal presentasi author per hari per waktu untuk menghindari bentrok
+        // Bentuk: $authorSchedules[author_id][day][start_time] = true
+        $authorSchedules = [];
+
+        // Fungsi pembantu menghitung jam string (misal: '13:00' + 60 menit = '14:00')
+        $addMinutes = function($time, $minutes) {
+            $timeInfo = explode(':', $time);
+            $totalMins = ((int)$timeInfo[0] * 60) + (int)$timeInfo[1] + $minutes;
+            $h = floor($totalMins / 60);
+            $m = $totalMins % 60;
+            return sprintf('%02d:%02d', $h, $m);
+        };
+
+        // --- PENJADWALAN ORAL (PRESENTASI LISAN) ---
+        foreach ($oralPapers as $paper) {
+            $roomId = $paper['topic_match'];
+            $roomName = $rooms[$roomId] ?? 'Ruang Tambahan';
             $authorId = $paper['author_id'];
+            
             $assigned = false;
 
-            // Cari slot waktu yang tersedia (Slot 1 sampai 3)
-            for ($slot = 1; $slot <= 3; $slot++) {
-                $isRoomAvailable = !in_array($slot, $roomSchedules[$roomId]);
-                $isAuthorAvailable = !isset($authorSchedules[$authorId]) || !in_array($slot, $authorSchedules[$authorId]);
+            // Iterasi per hari (Day 1 to total_days)
+            for ($day = 1; $day <= $config['total_days']; $day++) {
+                if ($assigned) break;
 
-                if ($isRoomAvailable && $isAuthorAvailable) {
-                    // Berhasil alokasikan!
-                    $allocations[] = [
-                        'id' => $paper['id'],
-                        'paper' => $paper['paper'],
-                        'author' => $paper['author_name'],
-                        'room' => $rooms[$roomId]
-                    ];
-
-                    $roomSchedules[$roomId][] = $slot;
-                    $authorSchedules[$authorId][] = $slot;
-                    $assigned = true;
-                    break;
+                // Inisialisasi usage jika belum ada
+                if (!isset($roomUsage[$roomId][$day])) {
+                    $roomUsage[$roomId][$day] = 0;
                 }
+
+                // Coba cari slot kosong di hari ini
+                while (($roomUsage[$roomId][$day] + $config['time_per_author_minutes']) <= $config['daily_duration_minutes']) {
+                    $usedMinutes = $roomUsage[$roomId][$day];
+                    $presentationTime = $addMinutes($config['start_time'], $usedMinutes);
+                    
+                    // Cek double booking
+                    if (!isset($authorSchedules[$authorId][$day][$presentationTime])) {
+                        // Alokasikan
+                        $allocations[] = [
+                            'id' => $paper['id'],
+                            'paper' => $paper['paper'],
+                            'author' => $paper['author_name'] . ' (Hari ' . $day . ', ' . $presentationTime . ')',
+                            'room' => $roomName,
+                            'type' => 'Oral'
+                        ];
+
+                        $roomUsage[$roomId][$day] += $config['time_per_author_minutes'];
+                        $authorSchedules[$authorId][$day][$presentationTime] = true;
+                        $assigned = true;
+                        break; // Keluar dari loop while
+                    } else {
+                        // Bentrok, majukan waktu ruangan (slot kosong dibiarkan/diisi orang berikutnya)
+                        $roomUsage[$roomId][$day] += $config['time_per_author_minutes'];
+                    }
+                }
+            }
+
+            if (!$assigned) {
+                // Berarti semua hari penuh atau terjadi bentrok tak terpecahkan.
+                $allocations[] = [
+                    'id' => $paper['id'],
+                    'paper' => $paper['paper'],
+                    'author' => $paper['author_name'] . ' (⚠️ Gagal - Kapasitas Penuh)',
+                    'room' => 'Belum dialokasikan',
+                    'type' => 'Oral'
+                ];
             }
         }
 
-        // Simpan hasil ke Session agar bisa dibaca oleh index()
+        // --- PENJADWALAN POSTER ---
+        // Poster biasanya ditaruh di sesi "Poster Hall" tanpa batasan slot per jam yang ketat
+        foreach ($posterPapers as $paper) {
+            $allocations[] = [
+                'id' => $paper['id'],
+                'paper' => $paper['paper'],
+                'author' => $paper['author_name'] . ' (Sepanjang Hari)',
+                'room' => 'Poster Exhibition Hall',
+                'type' => 'Poster'
+            ];
+        }
+
+        // Simpan ke session untuk ditangkap oleh frontend
         session(['schedule_allocations' => $allocations]);
-        
-        return back()->with('success', 'Auto-Scheduling selesai. Coba perhatikan jadwal Kevin Wijaya, dia dijadwalkan di jam yang berbeda!');
+
+        return redirect()->back()->with('success', 'Algoritma Auto-Scheduling Multi-Day & Tipe Paper berhasil dijalankan!');
     }
 
     public function publishSchedule(Request $request)

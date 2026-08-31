@@ -17,6 +17,7 @@ export default function PaperAllocationTable({ allocations }) {
                         <tr className="text-[11px] text-quenza-text-secondary uppercase tracking-wider font-quenza-bold border-b border-gray-100 bg-gray-50/75">
                             <th className="py-3.5 px-4">PAPER</th>
                             <th className="py-3.5 px-4">AUTHOR</th>
+                            <th className="py-3.5 px-4">TIPE</th>
                             <th className="py-3.5 px-4">RUANGAN DITUGASKAN</th>
                         </tr>
                     </thead>
@@ -25,6 +26,11 @@ export default function PaperAllocationTable({ allocations }) {
                             <tr key={idx} className={`border-b border-gray-100 hover:bg-gray-50/50 transition-colors ${idx % 2 === 1 ? 'bg-gray-50/30' : 'bg-white'}`}>
                                 <td className="py-3.5 px-4 font-quenza-semibold">{item.paper}</td>
                                 <td className="py-3.5 px-4 text-quenza-text-secondary font-quenza-regular">{item.author}</td>
+                                <td className="py-3.5 px-4">
+                                    <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full ${item.type === 'Poster' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                        {item.type ? item.type.toUpperCase() : 'ORAL'}
+                                    </span>
+                                </td>
                                 <td className="py-3.5 px-4 text-quenza-secondary font-quenza-bold">{item.room}</td>
                             </tr>
                         ))}
