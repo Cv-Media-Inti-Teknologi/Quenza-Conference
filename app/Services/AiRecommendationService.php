@@ -97,8 +97,14 @@ Daftar Reviewer Tersedia:
                 // Parse JSON
                 $data = json_decode($content, true);
                 
-                if (isset($data['recommendations']) && is_array($data['recommendations'])) {
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $errorMessage = 'Gagal membaca balasan AI. (Error: ' . json_last_error_msg() . '). Kemungkinan model berhalusinasi.';
+                    Log::error('JSON Decode Error: ' . json_last_error_msg() . ' | Content: ' . $content);
+                } elseif (isset($data['recommendations']) && is_array($data['recommendations'])) {
                     return $data['recommendations'];
+                } else {
+                    $errorMessage = 'Format JSON AI salah (Tidak ada kunci "recommendations").';
+                    Log::error('Invalid AI Response Format. Content: ' . $content);
                 }
             } else {
                 $errorMessage = 'API Error (' . $response->status() . '). Coba lagi nanti.';
