@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     // API endpoints for Paper Review
     Route::get('/api/papers', [PaperReviewController::class, 'getPapersTable']);
     Route::get('/api/papers/{id}', [PaperReviewController::class, 'getPaperDetail']);
+    Route::get('/api/papers/{id}/ai-recommendations', [PaperReviewController::class, 'getAiRecommendations']);
     Route::put('/api/papers/{id}/status', [PaperReviewController::class, 'updatePaperStatus']);
     Route::get('/api/reviewers', [PaperReviewController::class, 'getReviewersList']);
     Route::get('/api/papers-review/metrics', [PaperReviewController::class, 'getDashboardMetrics']);

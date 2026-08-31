@@ -7,7 +7,14 @@ export default function SchedulingMethodPicker({ activeMethod, setActiveMethod }
     const triggerAutoSchedule = () => {
         setActiveMethod('ai');
         post('/admin/schedule/auto', {
-            preserveScroll: true
+            preserveScroll: true,
+            onSuccess: () => {
+                const el = document.getElementById('allocation-table-section');
+                if (el) {
+                    // Menggunakan block: 'start' dipadukan dengan scroll-mt-24 di CSS target elemen
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
         });
     };
 
