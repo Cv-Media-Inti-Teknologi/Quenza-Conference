@@ -9,6 +9,7 @@ use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PaperReviewController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -44,6 +45,16 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::post('/schedule/params', [ScheduleController::class, 'updateScheduleParams'])->name('admin.schedule.params');
     Route::post('/schedule/auto', [ScheduleController::class, 'autoSchedule'])->name('admin.schedule.auto');
     Route::post('/schedule/publish', [ScheduleController::class, 'publishSchedule'])->name('admin.schedule.publish');
+
+    // Paper & Review Management routes
+    Route::get('/papers-review', [PaperReviewController::class, 'index'])->name('admin.papers-review');
+    
+    // API endpoints for Paper Review
+    Route::get('/api/papers', [PaperReviewController::class, 'getPapersTable']);
+    Route::get('/api/papers/{id}', [PaperReviewController::class, 'getPaperDetail']);
+    Route::put('/api/papers/{id}/status', [PaperReviewController::class, 'updatePaperStatus']);
+    Route::get('/api/reviewers', [PaperReviewController::class, 'getReviewersList']);
+    Route::get('/api/papers-review/metrics', [PaperReviewController::class, 'getDashboardMetrics']);
 
     // User Management routes
     Route::get('/users', [UserController::class, 'index'])->name('admin.users');
