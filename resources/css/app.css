@@ -1,0 +1,437 @@
+@import "tailwindcss";
+@config "../../tailwind.config.js";
+
+/* ========================================
+   QUENZA GLOBAL CSS
+   ======================================== */
+
+@layer base {
+    /* ----------------------------------------
+     Root
+     ---------------------------------------- */
+
+    :root {
+        --quenza-bg: #f7fafc;
+        --quenza-primary: #20d375;
+        --quenza-secondary: #0e5c4a;
+        --quenza-tertiary: #0f6d5c;
+
+        --quenza-text-primary: #0b0b0b;
+        --quenza-text-secondary: #7f837b;
+
+        --quenza-danger: #e22a2a;
+        --quenza-warning: #d1a12a;
+        --quenza-success: #20d375;
+
+        --quenza-sidebar: #0e5c4a;
+        --quenza-active: #0a3d31;
+
+        --quenza-border: #e5e7eb;
+        --quenza-card: #ffffff;
+
+        --quenza-radius-sm: 6px;
+        --quenza-radius-md: 8px;
+        --quenza-radius-lg: 12px;
+        --quenza-radius-xl: 16px;
+    }
+
+    /* ----------------------------------------
+     Box Sizing
+     ---------------------------------------- */
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    /* ----------------------------------------
+     HTML
+     ---------------------------------------- */
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    /* ----------------------------------------
+     Body
+     ---------------------------------------- */
+
+    body {
+        @apply bg-quenza-bg text-quenza-text-primary font-sans;
+
+        margin: 0;
+        min-width: 320px;
+
+        font-size: 14px;
+        line-height: 1.5;
+
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+
+        text-rendering: optimizeLegibility;
+    }
+
+    /* ----------------------------------------
+     Headings
+     ---------------------------------------- */
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--quenza-text-primary);
+    }
+
+    h1 {
+        @apply text-quenza-3xlarge font-quenza-bold;
+    }
+
+    h2 {
+        @apply text-quenza-2xlarge font-quenza-bold;
+    }
+
+    h3 {
+        @apply text-quenza-xlarge font-quenza-semibold;
+    }
+
+    h4 {
+        @apply text-quenza-large font-quenza-semibold;
+    }
+
+    /* ----------------------------------------
+     Paragraph
+     ---------------------------------------- */
+
+    p {
+        margin: 0;
+    }
+
+    /* ----------------------------------------
+     Links
+     ---------------------------------------- */
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    /* ----------------------------------------
+     Images
+     ---------------------------------------- */
+
+    img,
+    svg {
+        display: block;
+        max-width: 100%;
+    }
+
+    img {
+        height: auto;
+    }
+
+    /* ----------------------------------------
+     Buttons & Inputs
+     ---------------------------------------- */
+
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+    }
+
+    input,
+    textarea,
+    select {
+        outline: none;
+    }
+
+    /* ----------------------------------------
+     Selection
+     ---------------------------------------- */
+
+    ::selection {
+        background-color: var(--quenza-primary);
+        color: #ffffff;
+    }
+
+    /* ----------------------------------------
+     Focus
+     ---------------------------------------- */
+
+    :focus-visible {
+        outline: 2px solid var(--quenza-primary);
+        outline-offset: 2px;
+    }
+}
+
+/* ========================================
+   COMPONENTS
+   ======================================== */
+
+@layer components {
+    /* ----------------------------------------
+     Container
+     ---------------------------------------- */
+
+    .quenza-container {
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+
+    /* ----------------------------------------
+     Card
+     ---------------------------------------- */
+
+    .quenza-card {
+        @apply rounded-quenza-lg border bg-white p-5 shadow-quenza-card;
+
+        border-color: var(--quenza-border);
+    }
+
+    .quenza-card-hover {
+        @apply transition-shadow duration-200 hover:shadow-quenza-card-hover;
+    }
+
+    /* ----------------------------------------
+     Form Input
+     ---------------------------------------- */
+
+    .quenza-input {
+        @apply w-full rounded-quenza-md border bg-white px-3 py-2 text-quenza-medium;
+
+        border-color: var(--quenza-border);
+        color: var(--quenza-text-primary);
+
+        transition:
+            border-color 150ms ease,
+            box-shadow 150ms ease;
+    }
+
+    .quenza-input::placeholder {
+        color: var(--quenza-text-secondary);
+    }
+
+    .quenza-input:focus {
+        border-color: var(--quenza-primary);
+        box-shadow: 0 0 0 3px rgba(32, 211, 117, 0.12);
+    }
+
+    /* ----------------------------------------
+     Buttons
+     ---------------------------------------- */
+
+    .quenza-btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-quenza-md px-4 py-2 font-quenza-medium transition-all duration-200;
+    }
+
+    .quenza-btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-quenza-md px-4 py-2 font-quenza-medium transition-all duration-200 bg-quenza-primary text-white;
+
+        &:hover {
+            filter: brightness(0.95);
+        }
+    }
+
+    .quenza-btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-quenza-md px-4 py-2 font-quenza-medium transition-all duration-200 bg-quenza-secondary text-white;
+
+        &:hover {
+            background-color: var(--quenza-active);
+        }
+    }
+
+    .quenza-btn-outline {
+        @apply inline-flex items-center justify-center gap-2 rounded-quenza-md px-4 py-2 font-quenza-medium transition-all duration-200 border bg-white;
+
+        border-color: var(--quenza-border);
+
+        &:hover {
+            @apply bg-gray-50;
+        }
+    }
+
+    .quenza-btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-quenza-md px-4 py-2 font-quenza-medium transition-all duration-200 bg-quenza-danger text-white;
+
+        &:hover {
+            filter: brightness(0.92);
+        }
+    }
+
+    /* ----------------------------------------
+     Badge
+     ---------------------------------------- */
+
+    .quenza-badge {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-quenza-small font-quenza-medium;
+    }
+
+    .quenza-badge-success {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-quenza-small font-quenza-medium bg-green-50 text-green-700;
+    }
+
+    .quenza-badge-warning {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-quenza-small font-quenza-medium bg-yellow-50 text-yellow-700;
+    }
+
+    .quenza-badge-danger {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-quenza-small font-quenza-medium bg-red-50 text-red-700;
+    }
+
+    .quenza-badge-pending {
+        @apply inline-flex items-center rounded-full px-3 py-1 text-quenza-small font-quenza-medium bg-orange-50 text-orange-700;
+    }
+
+    /* Quenza User Management Badges */
+    .quenza-badge-role {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 500;
+        background-color: #E0F2FE;
+        color: #0284C7;
+        line-height: 1.25rem;
+    }
+
+    .quenza-badge-role-admin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background-color: #E8F8F0;
+        color: #0E5C4A;
+        line-height: 1.25rem;
+    }
+
+    .quenza-badge-verified {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background-color: #E8F8F0;
+        color: #10B981;
+        line-height: 1.25rem;
+    }
+
+    .quenza-badge-unverified {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background-color: #FEF3E7;
+        color: #D97706;
+        line-height: 1.25rem;
+    }
+
+    .quenza-badge-active {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background-color: #E8F8F0;
+        color: #10B981;
+        line-height: 1.25rem;
+    }
+
+    .quenza-badge-blocked {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.875rem;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 600;
+        background-color: #FEECEB;
+        color: #E22A2A;
+        line-height: 1.25rem;
+    }
+
+    /* ----------------------------------------
+     Divider
+     ---------------------------------------- */
+
+    .quenza-divider {
+        @apply border-t;
+
+        border-color: var(--quenza-border);
+    }
+}
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+@layer utilities {
+    /* ----------------------------------------
+     Scrollbar
+     ---------------------------------------- */
+
+    .quenza-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .quenza-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .quenza-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+
+    .quenza-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* ----------------------------------------
+     Text
+     ---------------------------------------- */
+
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    /* ----------------------------------------
+     Hide Scrollbar
+     ---------------------------------------- */
+
+    .scrollbar-none {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+}
