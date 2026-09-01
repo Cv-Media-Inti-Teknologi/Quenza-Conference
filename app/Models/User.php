@@ -63,6 +63,21 @@ class User extends Authenticatable
         return $this->hasMany(PaperReview::class, 'reviewer_id');
     }
 
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'created_by');
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class, 'requested_by');
+    }
+
     // Role Helper Methods
     public function isSuperAdmin(): bool
     {
