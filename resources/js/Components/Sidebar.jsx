@@ -61,10 +61,19 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen
         },
         {
             name: 'Keuangan',
-            url: '#',
+            url: '/admin/finance',
             icon: (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 shrink-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H4.5A2.25 2.25 0 002.25 12v6.75A2.25 2.25 0 004.5 21h15a2.25 2.25 0 002.25-2.25V12zm-9-3a3 3 0 116 0 3 3 0 01-6 0z" />
+                </svg>
+            )
+        },
+        {
+            name: 'Ticketing',
+            url: '/admin/ticketing',
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 shrink-0">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V15m0 0H9m0 0h7.5M9 19.5H7.5A2.25 2.25 0 015.25 17.25V4.5A2.25 2.25 0 017.5 2.25h7.5a2.25 2.25 0 012.25 2.25v12.75A2.25 2.25 0 0116.5 19.5M15 6.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
                 </svg>
             )
         },
