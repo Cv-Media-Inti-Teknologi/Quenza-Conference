@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Paper;
+use App\Models\Transaction;
+use App\Models\Expense;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -9,25 +13,78 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Mock data for Dashboard Super Admin (to be replaced with DB queries later)
+        // Format Currency Helper
+        $formatCurrency = function ($amount) {
+            return 'Rp ' . number_format((float)$amount, 0, ',', '.');
+        };
+
+        // Real Database Queries
+        $totalPapers = Paper::count();
+        $ticketsSold = Transaction::where('type', 'registration')->where('status', 'paid')->count();
+        
+        $cashIn = Transaction::where('status', 'paid')->sum('amount');
+        $cashOut = Expense::where('status', 'approved')->sum('amount');
+
+        // Recent Finance Mutations (Last 5 transactions + expenses combined roughly)
+        $recentTransactions = Transaction::with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function($t) use ($formatCurrency) {
+                return [
+                    'id' => $t->reference_code ?? 'TRX-' . $t->id,
+                    'name' => $t->user->name ?? 'Unknown',
+                    'amount' => $formatCurrency($t->amount),
+                    'desc' => $t->description ?? 'Pemasukan',
+                    'date' => $t->created_at->format('d/m/Y'),
+                    'status' => $t->status === 'paid' ? 'Paid' : ucfirst($t->status)
+                ];
+            });
+
+        // Room Assignments (Real data)
+        $roomAssignments = Room::all()->map(function($room) {
+            return [
+                'name' => $room->name,
+                'topic' => $room->topic,
+                'occupied' => 0, // Placeholder until schedule is fully tracked
+                'capacity' => $room->capacity,
+                'status' => 'normal'
+            ];
+        });
+
+        // Paper Status Chart Data
+        $paperStatus = [
+            ['name' => 'Accepted', 'value' => Paper::where('status', 'accepted')->count(), 'color' => '#10b981'],
+            ['name' => 'Revision', 'value' => Paper::where('status', 'revision')->count(), 'color' => '#f59e0b'],
+            ['name' => 'Review', 'value' => Paper::where('status', 'under_review')->count(), 'color' => '#3b82f6'],
+            ['name' => 'Rejected', 'value' => Paper::where('status', 'rejected')->count(), 'color' => '#ef4444'],
+            ['name' => 'Submitted', 'value' => Paper::where('status', 'submitted')->count(), 'color' => '#94a3b8'],
+        ];
+
+        // Clean up empty status
+        $paperStatus = array_values(array_filter($paperStatus, fn($item) => $item['value'] > 0));
+        if (empty($paperStatus)) {
+            $paperStatus = [['name' => 'No Data', 'value' => 1, 'color' => '#e2e8f0']];
+        }
+
         $metrics = [
             'tickets_sold' => [
-                'value' => 742,
-                'change' => '+15% vs bulan lalu',
+                'value' => $ticketsSold,
+                'change' => 'Real-time',
                 'trend' => 'up',
             ],
             'total_papers' => [
-                'value' => 418,
+                'value' => $totalPapers,
                 'label' => 'Total diajukan',
             ],
             'cash_in' => [
-                'value' => 'Rp 134.564.000',
-                'change' => '+12% vs bulan lalu',
+                'value' => $formatCurrency($cashIn),
+                'change' => 'Total Pendapatan',
                 'trend' => 'up',
             ],
             'cash_out' => [
-                'value' => 'Rp 112.000.000',
-                'label' => 'Biaya operasional',
+                'value' => $formatCurrency($cashOut),
+                'label' => 'Total Pengeluaran',
             ]
         ];
 
@@ -35,7 +92,7 @@ class DashboardController extends Controller
             ['phase' => 'Fase 1', 'title' => 'Ketersediaan', 'desc' => 'Ditutup: 10 Juli 2026', 'status' => 'completed'],
             ['phase' => 'Fase 2', 'title' => 'Review Naskah', 'desc' => 'Hingga 15 Ags 2026', 'status' => 'active', 'badge' => 'In Progress'],
             ['phase' => 'Fase 3', 'title' => 'Pembayaran', 'desc' => 'Mulai 1 Sep 2026', 'status' => 'upcoming'],
-            ['phase' => 'Fase 4', 'title' => 'Pelaksanaan Event', 'desc' => '14-16 Okt 2026 (ICIT)', 'status' => 'upcoming'],
+            ['phase' => 'Fase 4', 'title' => 'Pelaksanaan Event', 'desc' => '14-16 Okt 2026', 'status' => 'upcoming'],
         ];
 
         $registrationTrend = [
@@ -45,43 +102,12 @@ class DashboardController extends Controller
             ['name' => 'Ags', 'pendaftar' => 742],
         ];
 
-        $paperStatus = [
-            ['name' => 'Accepted', 'value' => 210, 'color' => '#10b981'],
-            ['name' => 'Revision', 'value' => 105, 'color' => '#f59e0b'],
-            ['name' => 'Review', 'value' => 63, 'color' => '#3b82f6'],
-            ['name' => 'Rejected', 'value' => 40, 'color' => '#ef4444'],
-        ];
-
-        $financeMutations = [
-            ['id' => 'TRX-2021', 'name' => 'Mark Ekosoebio', 'amount' => 'Rp 1.500.000', 'desc' => 'Registrasi Presenter', 'date' => '12/06/2026', 'status' => 'Paid'],
-            ['id' => 'TRX-2022', 'name' => 'Willem K.', 'amount' => 'Rp 650.000', 'desc' => 'Registrasi Participant', 'date' => '22/05/2026', 'status' => 'Paid'],
-            ['id' => 'TRX-2023', 'name' => 'Tirta Ayud', 'amount' => 'Rp 45.000.000', 'desc' => 'Sponsorship Gold', 'date' => '15/05/2026', 'status' => 'Process'],
-            ['id' => 'TRX-2025', 'name' => 'Sanderson', 'amount' => 'Rp 12.000.000', 'desc' => 'Refund Ditolak', 'date' => '25/05/2026', 'status' => 'Cancelled'],
-        ];
-
         $aiAlerts = [
             [
-                'type' => 'REKOMENDASI',
-                'title' => '3 reviewer relevan untuk paper #P-105',
-                'desc' => 'Paper terkait IoT cocok dengan keahlian Dr. Santoso, Prof. Lili, dan Andi, M.Kom.'
-            ],
-            [
-                'type' => 'PLAGIARISM',
-                'title' => 'Similarity score 34% pada paper #P-204',
-                'desc' => 'Melebihi ambang batas 30% - perlu perhatian evaluasi review lanjutan.'
-            ],
-            [
-                'type' => 'DEADLINE',
-                'title' => '6 naskah mendekati tenggat review',
-                'desc' => 'H-1 untuk track Data Science. Pengingat otomatis terkirim ke reviewer.'
+                'type' => 'INFO',
+                'title' => 'Sistem Terhubung',
+                'desc' => 'Dashboard dan modul Keuangan kini terhubung ke database realtime.'
             ]
-        ];
-
-        $roomAssignments = [
-            ['name' => 'Ruang Garuda', 'topic' => 'AI & Machine Learning', 'occupied' => 104, 'capacity' => 120, 'status' => 'normal'],
-            ['name' => 'Ruang Kartika', 'topic' => 'Software Engineering', 'occupied' => 80, 'capacity' => 80, 'status' => 'full'],
-            ['name' => 'Ruang Melati', 'topic' => 'Data Science', 'occupied' => 82, 'capacity' => 80, 'status' => 'over'],
-            ['name' => 'Ruang Cendana', 'topic' => 'IoT & Embedded', 'occupied' => 74, 'capacity' => 100, 'status' => 'normal'],
         ];
 
         return Inertia::render('Dashboard', [
@@ -89,7 +115,7 @@ class DashboardController extends Controller
             'timeline' => $timeline,
             'registrationTrend' => $registrationTrend,
             'paperStatus' => $paperStatus,
-            'financeMutations' => $financeMutations,
+            'financeMutations' => $recentTransactions,
             'aiAlerts' => $aiAlerts,
             'roomAssignments' => $roomAssignments,
         ]);

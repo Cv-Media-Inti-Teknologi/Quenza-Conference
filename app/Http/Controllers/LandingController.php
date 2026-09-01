@@ -44,7 +44,23 @@ class LandingController extends Controller
 
     public function pricing(): Response
     {
-        return $this->renderPage('PricingPage');
+        $landingData = LandingContent::current();
+        $user = auth()->user();
+        $ticketPricing = \App\Models\TicketPricing::all();
+
+        return Inertia::render('PricingPage', [
+            'landingData' => $landingData,
+            'ticketPricing' => $ticketPricing,
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar,
+                ] : null,
+            ],
+        ]);
     }
 
     private function renderPage(string $page): Response
