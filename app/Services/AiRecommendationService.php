@@ -69,9 +69,9 @@ Daftar Reviewer Tersedia:
         if (!empty($apiKey)) {
             try {
             $response = Http::withoutVerifying()
+                ->retry(3, 1000)
                 ->withToken($apiKey)
                 ->withHeaders([
-                    'User-Agent' => 'Quenza-App/1.0',
                     'Accept' => 'application/json',
                 ])
                 ->timeout(120)
@@ -80,11 +80,12 @@ Daftar Reviewer Tersedia:
                     'stream' => false,
                     'messages' => [
                         [
-                            'role' => 'system',
+                            'role' => 'user',
                             'content' => $systemPrompt
                         ],
                     ],
-                    'temperature' => 0.2
+                    'temperature' => 0.2,
+                    'max_tokens' => 300
                 ]);
 
             if ($response->successful()) {

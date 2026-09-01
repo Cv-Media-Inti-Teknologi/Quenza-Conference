@@ -61,6 +61,10 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::get('/api/reviewers', [PaperReviewController::class, 'getReviewersList']);
     Route::get('/api/papers-review/metrics', [PaperReviewController::class, 'getDashboardMetrics']);
 
+    // API endpoints for AI Smart Assistant
+    Route::post('/api/ai/smart-notification', [\App\Http\Controllers\AiNotificationController::class, 'generateReminderDraft']);
+    Route::post('/api/ai/send-notification', [\App\Http\Controllers\AiNotificationController::class, 'sendReminderEmail']);
+
     // User Management routes
     Route::get('/users', [UserController::class, 'index'])->name('admin.users');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
