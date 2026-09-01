@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function PaperAllocationTable({ allocations }) {
+export default function PaperAllocationTable({ allocations = [] }) {
     return (
         <div id="allocation-table-section" className="quenza-card rounded-quenza-xl mt-6 scroll-mt-24">
             <div className="flex justify-between items-center mb-6">
@@ -8,7 +8,9 @@ export default function PaperAllocationTable({ allocations }) {
                     <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Alokasikan Paper ke Sesi Ruangan</h3>
                     <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Daftar penempatan paper berdasarkan kesesuaian topik</p>
                 </div>
-                <span className="quenza-badge-success">Tervalidasi</span>
+                <span className="quenza-badge-success">
+                    {allocations.length > 0 ? `${allocations.length} Terjadwal` : 'Belum Ada Jadwal'}
+                </span>
             </div>
 
             <div className="overflow-x-auto">
@@ -19,6 +21,8 @@ export default function PaperAllocationTable({ allocations }) {
                             <th className="py-3.5 px-4">AUTHOR</th>
                             <th className="py-3.5 px-4">TIPE</th>
                             <th className="py-3.5 px-4">RUANGAN DITUGASKAN</th>
+                            <th className="py-3.5 px-4">WAKTU SESI</th>
+                            <th className="py-3.5 px-4">METODE</th>
                         </tr>
                     </thead>
                     <tbody className="text-quenza-text-primary">

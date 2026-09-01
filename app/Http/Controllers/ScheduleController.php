@@ -1,20 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
+use App\Models\EventSetting;
+use App\Models\Paper;
+use App\Models\Room;
+use App\Models\Schedule;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ScheduleController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): Response
     {
-        // Mock data for Event & Scheduling page (to be replaced with actual DB query later)
-        $rooms = [
-            ['id' => 1, 'name' => 'Ruang Garuda', 'location' => 'Lantai 2, Offline', 'capacity' => '120 kursi', 'topic' => 'AI & Machine Learning'],
-            ['id' => 2, 'name' => 'Ruang Kartika', 'location' => 'Lantai 2, Offline', 'capacity' => '80 kursi', 'topic' => 'Software Engineering'],
-            ['id' => 3, 'name' => 'Virtual Room A', 'location' => 'Zoom Meeting', 'capacity' => '300 Partisipan', 'topic' => 'Hybrid — Data Science'],
-        ];
+        $rooms = Room::query()->get()->map(function (Room $room) {
+            return [
+                'id' => $room->id,
+                'name' => $room->name,
+                'location' => $room->location,
+                'capacity' => $room->capacity . ' kursi',
+                'topic' => $room->topic,
+            ];
+        });
+
+        $setting = EventSetting::query()->first();
+        if (!$setting) {
+            $setting = EventSetting::create([
+                'event_days' => 2,
+                'start_time' => '11:00',
+                'end_time' => '16:00',
+                'break_duration_minutes' => 15,
+                'presentation_duration_minutes' => 40,
+            ]);
+        }
 
         $scheduleParams = [
             'days' => 2,
@@ -38,29 +65,31 @@ class ScheduleController extends Controller
         ]);
     }
 
-    public function storeRoom(Request $request)
+    /**
+     * Store or update schedule parameters.
+     */
+    public function updateScheduleParams(Request $request): RedirectResponse
     {
-        // TODO: Implement room creation logic
-        // $validated = $request->validate([
-        //     'name' => 'required|string',
-        //     'location' => 'required|string',
-        //     'capacity' => 'required|string',
-        //     'topic' => 'required|string',
-        // ]);
-        // Room::create($validated);
-        return back()->with('success', 'Ruangan berhasil ditambahkan');
-    }
+        $validated = $request->validate([
+            'days' => ['required', 'integer', 'min:1'],
+            'start_time' => ['required', 'string'],
+            'end_time' => ['required', 'string'],
+            'break_duration' => ['required', 'integer', 'min:0'],
+            'presenter_duration' => ['required', 'integer', 'min:1'],
+        ]);
 
-    public function destroyRoom($id)
-    {
-        // TODO: Implement room deletion logic
-        // Room::destroy($id);
-        return back()->with('success', 'Ruangan berhasil dihapus');
-    }
+        $setting = EventSetting::query()->first();
+        if (!$setting) {
+            $setting = new EventSetting();
+        }
 
-    public function updateScheduleParams(Request $request)
-    {
-        // TODO: Implement schedule parameters update logic
+        $setting->event_days = (int) $validated['days'];
+        $setting->start_time = $validated['start_time'];
+        $setting->end_time = $validated['end_time'];
+        $setting->break_duration_minutes = (int) $validated['break_duration'];
+        $setting->presentation_duration_minutes = (int) $validated['presenter_duration'];
+        $setting->save();
+
         return back()->with('success', 'Parameter penjadwalan berhasil diupdate');
     }
 
@@ -204,9 +233,14 @@ class ScheduleController extends Controller
         return redirect()->back()->with('success', 'Algoritma Auto-Scheduling Multi-Day & Tipe Paper berhasil dijalankan!');
     }
 
-    public function publishSchedule(Request $request)
+    /**
+     * Publish the final schedule.
+     */
+    public function publishSchedule(Request $request): RedirectResponse
     {
-        // TODO: Publish schedule, send notification emails to authors & reviewers
+        Schedule::query()->update(['is_locked' => true]);
+        Paper::whereIn('id', Schedule::pluck('paper_id'))->update(['status' => 'Published']);
+
         return back()->with('success', 'Jadwal final berhasil dipublikasikan');
     }
 }

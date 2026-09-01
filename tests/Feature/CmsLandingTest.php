@@ -121,7 +121,7 @@ class CmsLandingTest extends TestCase
     {
         Storage::fake('public');
 
-        $file = UploadedFile::fake()->image('banner.jpg', 800, 600);
+        $file = UploadedFile::fake()->create('banner.jpg', 100, 'image/jpeg');
 
         $response = $this->actingAs($this->superAdmin)->postJson('/admin/cms/upload', [
             'image' => $file,
