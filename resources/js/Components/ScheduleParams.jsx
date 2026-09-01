@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from '@inertiajs/react';
 
-export default function ScheduleParams({ initialParams }) {
+export default function ScheduleParams({ initialParams = {} }) {
     const { data, setData, post, processing } = useForm({
         days: initialParams.days || 2,
         start_time: initialParams.start_time || '11:00',
@@ -12,7 +12,9 @@ export default function ScheduleParams({ initialParams }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post('/admin/schedule/params');
+        post('/admin/schedule/params', {
+            preserveScroll: true
+        });
     };
 
     return (
@@ -27,24 +29,28 @@ export default function ScheduleParams({ initialParams }) {
                     disabled={processing}
                     className="quenza-btn-secondary text-quenza-small font-quenza-semibold px-4 py-2 rounded-quenza-md shadow-sm"
                 >
-                    Simpan Parameter
+                    {processing ? 'Menyimpan...' : 'Simpan Parameter'}
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jumlah Hari</label>
                     <input 
-                        type="text" 
+                        type="number" 
+                        min="1"
+                        max="30"
+                        required
                         value={data.days}
-                        onChange={(e) => setData('days', e.target.value)}
+                        onChange={(e) => setData('days', parseInt(e.target.value) || 1)}
                         className="quenza-input font-quenza-medium bg-quenza-bg"
                     />
                 </div>
                 <div>
                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jam Mulai</label>
                     <input 
-                        type="text" 
+                        type="time" 
+                        required
                         value={data.start_time}
                         onChange={(e) => setData('start_time', e.target.value)}
                         className="quenza-input font-quenza-medium bg-quenza-bg"
@@ -53,7 +59,8 @@ export default function ScheduleParams({ initialParams }) {
                 <div>
                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jam Selesai</label>
                     <input 
-                        type="text" 
+                        type="time" 
+                        required
                         value={data.end_time}
                         onChange={(e) => setData('end_time', e.target.value)}
                         className="quenza-input font-quenza-medium bg-quenza-bg"
@@ -62,22 +69,28 @@ export default function ScheduleParams({ initialParams }) {
                 <div>
                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jeda Istirahat (menit)</label>
                     <input 
-                        type="text" 
+                        type="number" 
+                        min="0"
+                        max="180"
+                        required
                         value={data.break_duration}
-                        onChange={(e) => setData('break_duration', e.target.value)}
+                        onChange={(e) => setData('break_duration', parseInt(e.target.value) || 0)}
                         className="quenza-input font-quenza-medium bg-quenza-bg"
                     />
                 </div>
                 <div>
                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Durasi / Presenter (menit)</label>
                     <input 
-                        type="text" 
+                        type="number" 
+                        min="5"
+                        max="300"
+                        required
                         value={data.presenter_duration}
-                        onChange={(e) => setData('presenter_duration', e.target.value)}
+                        onChange={(e) => setData('presenter_duration', parseInt(e.target.value) || 1)}
                         className="quenza-input font-quenza-medium bg-quenza-bg"
                     />
                 </div>
-            </div>
+            </form>
         </div>
     );
 }

@@ -208,14 +208,22 @@ export default function CmsLandingPage({ landingData }) {
         };
 
         const csrfToken = decodeURIComponent(getCookie('XSRF-TOKEN'));
+        const metaCsrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        const headers = {
+            'Accept': 'application/json',
+        };
+        if (csrfToken) {
+            headers['X-XSRF-TOKEN'] = csrfToken;
+        }
+        if (metaCsrf) {
+            headers['X-CSRF-TOKEN'] = metaCsrf;
+        }
 
         const response = await fetch('/admin/cms/upload', {
             method: 'POST',
             body: formData,
-            headers: {
-                'X-XSRF-TOKEN': csrfToken,
-                'Accept': 'application/json',
-            },
+            headers: headers,
         });
 
         if (!response.ok) {
