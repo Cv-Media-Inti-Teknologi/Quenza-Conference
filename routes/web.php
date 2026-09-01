@@ -121,3 +121,5 @@ Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function
     Route::post('/api/review/{paperId}/submit', [ReviewerController::class, 'submitReview']);
     Route::get('/api/history', [ReviewerController::class, 'getReviewHistory']);
 });
+
+Route::post('/api/ai/check-similarity', [\App\Http\Controllers\AiSimilarityController::class, 'checkSimilarity']);

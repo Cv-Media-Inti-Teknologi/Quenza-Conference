@@ -150,13 +150,16 @@ export default function PaperManagementTab() {
                   <td className="py-3.5 px-4 font-quenza-medium max-w-xs truncate">{paper.title}</td>
                   <td className="py-3.5 px-4 text-quenza-text-secondary">{paper.track}</td>
                   <td className="py-3.5 px-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-quenza-small font-quenza-semibold ${
-                      paper.similarity_score <= 10 ? 'bg-green-50 text-green-700' :
-                      paper.similarity_score <= 30 ? 'bg-orange-50 text-orange-700' :
-                      'bg-red-50 text-red-700'
-                    }`}>
-                      {paper.similarity_score}%
-                    </span>
+                    <div className="flex flex-col gap-1 items-start">
+                      <span className={`px-2.5 py-0.5 rounded-full text-quenza-small font-quenza-semibold ${
+                        paper.similarity_score === null ? 'bg-gray-100 text-gray-700' :
+                        paper.similarity_score <= 10 ? 'bg-green-50 text-green-700' :
+                        paper.similarity_score <= 30 ? 'bg-orange-50 text-orange-700' :
+                        'bg-red-50 text-red-700'
+                      }`}>
+                        {paper.similarity_score !== null ? `${paper.similarity_score}%` : 'Sedang Diproses...'}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-3.5 px-4">
                     <PaperStatusBadge status={paper.status} />

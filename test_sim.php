@@ -1,0 +1,1 @@
+<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); \ = Illuminate\Http\Request::create('/api/ai/check-similarity', 'POST', ['paper_id' => 1]); \ = app()->handle(\); echo \->getContent();
