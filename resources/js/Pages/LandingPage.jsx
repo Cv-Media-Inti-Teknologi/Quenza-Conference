@@ -418,24 +418,32 @@ export default function LandingPage({ landingData, auth }) {
                                     <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
                                         Participant
                                     </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Non-Pemakalah</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">Akses seluruh sesi plenary & paralel.</p>
+                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Offline</h3>
+                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang menghadiri konferensi secara langsung.</p>
                                     <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 650.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / orang</span>
+                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 400.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Umum</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 300.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 20</span>
+                                        <span className="text-quenza-small text-gray-500"> / International</span>
                                     </div>
                                     <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses Room Hybrid & Offline
+                                            Akses penuh selama konferensi
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            E-Certificate Kehadiran
+                                            Akses ke seluruh sesi dan workshop
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Materi Presentasi & Prosiding
+                                            Sertifikat peserta
                                         </li>
                                     </ul>
                                 </div>
@@ -447,30 +455,46 @@ export default function LandingPage({ landingData, auth }) {
                             {/* Card 2 - Highlighted */}
                             <div className="bg-white rounded-quenza-2xl border-2 border-quenza-secondary p-8 shadow-xl flex flex-col justify-between relative scale-105">
                                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-quenza-secondary text-white px-4 py-1 rounded-full text-quenza-small font-quenza-bold tracking-wider uppercase">
-                                    Rekomendasi Author
+                                    Rekomendasi
                                 </div>
                                 <div>
                                     <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
                                         Presenter
                                     </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Pemakalah Reguler</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">Registrasi 1 naskah paper lolos review.</p>
+                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Pemakalah</h3>
+                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang mempresentasikan makalah.</p>
                                     <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 1.500.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / paper</span>
+                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 350.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Dosen atau Alumni + Prosiding</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 200.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 40</span>
+                                        <span className="text-quenza-small text-gray-500"> / International + Publication</span>
                                     </div>
                                     <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Presentasi Oral / Poster Paralel
+                                            Akses penuh selama konferensi
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Double-Blind Review & AI Scoring
+                                            Kesempatan mempresentasikan makalah
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Sertifikat Presenter Resmi
+                                            Publikasi dalam prosiding
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                            Sertifikat sebagai pemakalah
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                            Akses ke seluruh sesi dan workshop
                                         </li>
                                     </ul>
                                 </div>
@@ -483,31 +507,39 @@ export default function LandingPage({ landingData, auth }) {
                             <div className="bg-white rounded-quenza-2xl border border-gray-200 p-8 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
                                 <div>
                                     <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
-                                        International
+                                        Participant
                                     </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Overseas Author</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">For international participants & authors.</p>
+                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Online</h3>
+                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang mengikuti konferensi secara virtual.</p>
                                     <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">$150 USD</span>
-                                        <span className="text-quenza-small text-gray-500"> / paper</span>
+                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 150.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Umum</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 100.000</span>
+                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
+                                    </div>
+                                    <div className="my-6">
+                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 10</span>
+                                        <span className="text-quenza-small text-gray-500"> / International</span>
                                     </div>
                                     <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Online & In-person Presentation
+                                            Akses penuh konferensi secara daring
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            International Proceeding
+                                            Akses ke seluruh sesi dan workshop
                                         </li>
                                         <li className="flex items-center gap-2">
                                             <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Online Payment Gateway
+                                            Sertifikat peserta
                                         </li>
                                     </ul>
                                 </div>
                                 <Link href="/login" className="quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center">
-                                    Register Overseas
+                                    Beli Tiket Peserta
                                 </Link>
                             </div>
                         </div>

@@ -5,27 +5,42 @@ export default function PricingPage({ auth }) {
     const plans = [
         {
             title: 'Participant',
-            subtitle: 'Non-Pemakalah',
-            price: 'Rp 650.000',
-            detail: '/ orang',
-            features: ['Akses Room Hybrid & Offline', 'E-Certificate Kehadiran', 'Materi Presentasi & Prosiding'],
+            subtitle: 'Offline',
+            description: 'Untuk peserta yang menghadiri konferensi secara langsung.',
+            prices: [
+                { amount: 'Rp 400.000', label: '/ Umum' },
+                { amount: 'Rp 300.000', label: '/ Mahasiswa' },
+                { amount: '$ 20', label: '/ International' },
+            ],
+            features: ['Akses penuh selama konferensi', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
             primary: false,
+            buttonLabel: 'Beli Tiket Peserta',
         },
         {
             title: 'Presenter',
-            subtitle: 'Pemakalah Reguler',
-            price: 'Rp 1.500.000',
-            detail: '/ paper',
-            features: ['Presentasi Oral / Poster Paralel', 'Double-Blind Review & AI Scoring', 'Sertifikat Presenter Resmi'],
+            subtitle: 'Pemakalah',
+            description: 'Untuk peserta yang mempresentasikan makalah.',
+            prices: [
+                { amount: 'Rp 350.000', label: '/ Dosen atau Alumni + Prosiding' },
+                { amount: 'Rp 200.000', label: '/ Mahasiswa' },
+                { amount: '$ 40', label: '/ International + Publication' },
+            ],
+            features: ['Akses penuh selama konferensi', 'Kesempatan mempresentasikan makalah', 'Publikasi dalam prosiding', 'Sertifikat sebagai pemakalah', 'Akses ke seluruh sesi dan workshop'],
             primary: true,
+            buttonLabel: 'Daftar Sebagai Author',
         },
         {
-            title: 'International',
-            subtitle: 'Overseas Author',
-            price: '$150 USD',
-            detail: '/ paper',
-            features: ['Online & In-person Presentation', 'International Proceeding', 'Online Payment Gateway'],
+            title: 'Participant',
+            subtitle: 'Online',
+            description: 'Untuk peserta yang mengikuti konferensi secara virtual.',
+            prices: [
+                { amount: 'Rp 150.000', label: '/ Umum' },
+                { amount: 'Rp 100.000', label: '/ Mahasiswa' },
+                { amount: '$ 10', label: '/ International' },
+            ],
+            features: ['Akses penuh konferensi secara daring', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
             primary: false,
+            buttonLabel: 'Beli Tiket Peserta',
         },
     ];
 
@@ -102,7 +117,7 @@ export default function PricingPage({ auth }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                             {plans.map((plan) => (
                                 <div
-                                    key={plan.title}
+                                    key={plan.title + plan.subtitle}
                                     className={`bg-white rounded-quenza-2xl border ${plan.primary ? 'border-2 border-quenza-secondary shadow-xl scale-[1.02]' : 'border-gray-200 shadow-xs'} p-8 flex flex-col justify-between hover:shadow-md transition-all relative`}
                                 >
                                     {plan.primary && (
@@ -119,12 +134,16 @@ export default function PricingPage({ auth }) {
                                             {plan.subtitle}
                                         </h3>
                                         <p className="text-quenza-small text-gray-500 mt-1">
-                                            {plan.title === 'Participant' ? 'Akses seluruh sesi plenary & paralel.' : plan.title === 'Presenter' ? 'Registrasi 1 naskah paper lolos review.' : 'For international participants & authors.'}
+                                            {plan.description}
                                         </p>
-                                        <div className="my-6">
-                                            <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">{plan.price}</span>
-                                            <span className="text-quenza-small text-gray-500"> {plan.detail}</span>
-                                        </div>
+                                        {plan.prices.map((price, idx) => (
+                                            <div key={idx} className="my-4">
+                                                <span className={`font-quenza-bold text-gray-900 ${idx === 0 ? 'text-quenza-4xlarge' : idx === 1 ? 'text-quenza-3xlarge' : 'text-quenza-xlarge'}`}>
+                                                    {price.amount}
+                                                </span>
+                                                <span className="text-quenza-small text-gray-500"> {price.label}</span>
+                                            </div>
+                                        ))}
                                         <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
                                             {plan.features.map((feature) => (
                                                 <li key={feature} className="flex items-center gap-2">
@@ -140,7 +159,7 @@ export default function PricingPage({ auth }) {
                                         href="/login"
                                         className={plan.primary ? 'quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white' : 'quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center'}
                                     >
-                                        {plan.primary ? 'Daftar Sebagai Author' : plan.title === 'Participant' ? 'Beli Tiket Peserta' : 'Register Overseas'}
+                                        {plan.buttonLabel}
                                     </Link>
                                 </div>
                             ))}
