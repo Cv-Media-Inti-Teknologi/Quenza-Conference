@@ -36,6 +36,8 @@ export default function PaperAllocationTable({ allocations = [] }) {
                                     </span>
                                 </td>
                                 <td className="py-3.5 px-4 text-quenza-secondary font-quenza-bold">{item.room}</td>
+                                <td className="py-3.5 px-4 text-quenza-text-secondary font-quenza-regular">{item.time}</td>
+                                <td className="py-3.5 px-4 text-quenza-text-secondary font-quenza-regular">{item.method}</td>
                             </tr>
                         ))}
                     </tbody>

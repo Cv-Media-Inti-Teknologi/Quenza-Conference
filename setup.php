@@ -1,0 +1,1 @@
+<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); \ = App\Models\Paper::find(1); \ = App\Models\Paper::find(2); \->abstract = \->abstract; \->save(); echo 'Abstract paper 2 disamakan dengan paper 1';
