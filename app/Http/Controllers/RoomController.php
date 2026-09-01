@@ -55,9 +55,8 @@ class RoomController extends Controller
     /**
      * Remove the specified room from storage.
      */
-    public function destroy(int|string $id): RedirectResponse
+    public function destroy(Room $room): RedirectResponse
     {
-        $room = Room::findOrFail($id);
         $room->delete();
 
         return back()->with('success', 'Ruangan berhasil dihapus');
