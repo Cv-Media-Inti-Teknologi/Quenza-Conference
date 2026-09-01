@@ -1,1 +1,0 @@
-<?php \ = new App\Models\Paper(); \->user_id=2; \->title='Uji Coba Sistem Plagiat'; \->abstract='Ini adalah abstrak unik yang belum pernah ada.'; \->status='submitted'; \->save(); echo 'Score: ' . \->fresh()->similarity_score;
