@@ -9,13 +9,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PaperReviewController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\TicketingController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -97,6 +97,11 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::post('/api/finance/refunds', [FinanceController::class, 'requestRefund']);
     Route::put('/api/finance/refunds/{refund}', [FinanceController::class, 'processRefund']);
     Route::get('/api/finance/export', [FinanceController::class, 'exportReport']);
+
+    // Payment routes
+    Route::post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
+    Route::post('/api/payment/mark-as-paid', [PaymentController::class, 'markAsPaid']);
+    Route::post('/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
 
     // Ticketing routes
     Route::get('/ticketing', [TicketingController::class, 'index'])->name('admin.ticketing');
