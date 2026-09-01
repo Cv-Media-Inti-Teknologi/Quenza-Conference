@@ -550,18 +550,37 @@ export default function LandingPage({ landingData, auth }) {
                 {/* CTA Footer Banner */}
                 <section className="py-16 bg-quenza-sidebar text-white text-center px-4">
                     <div className="max-w-4xl mx-auto flex flex-col items-center">
-                        <h2 className="text-3xl sm:text-4xl font-quenza-bold">
-                            Siap Mempublikasikan Riset Terbaik Anda?
-                        </h2>
-                        <p className="text-quenza-large text-green-100 mt-3 max-w-xl">
-                            Daftarkan diri dan naskah Anda sekarang untuk bergabung dalam konferensi terdepan tahun ini.
-                        </p>
-                        <Link
-                            href="/login"
-                            className="mt-8 px-8 py-3.5 bg-quenza-primary hover:brightness-105 text-gray-900 font-quenza-bold rounded-quenza-lg shadow-lg hover:scale-105 transition-all"
-                        >
-                            Mulai Registrasi Sekarang
-                        </Link>
+                        {auth?.user ? (
+                            <>
+                                <h2 className="text-3xl sm:text-4xl font-quenza-bold">
+                                    Selamat Datang kembali, {auth.user.name}!
+                                </h2>
+                                <p className="text-quenza-large text-green-100 mt-3 max-w-xl">
+                                    Siap untuk submit paper? Kirimkan naskah Anda sekarang.
+                                </p>
+                                <Link
+                                    href="/portal"
+                                    className="mt-8 px-8 py-3.5 bg-quenza-primary hover:brightness-105 text-gray-900 font-quenza-bold rounded-quenza-lg shadow-lg hover:scale-105 transition-all"
+                                >
+                                    Submit Paper Sekarang
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-3xl sm:text-4xl font-quenza-bold">
+                                    Siap Mempublikasikan Riset Terbaik Anda?
+                                </h2>
+                                <p className="text-quenza-large text-green-100 mt-3 max-w-xl">
+                                    Daftarkan diri dan naskah Anda sekarang untuk bergabung dalam konferensi terdepan tahun ini.
+                                </p>
+                                <Link
+                                    href="/login"
+                                    className="mt-8 px-8 py-3.5 bg-quenza-primary hover:brightness-105 text-gray-900 font-quenza-bold rounded-quenza-lg shadow-lg hover:scale-105 transition-all"
+                                >
+                                    Mulai Registrasi Sekarang
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </section>
             </main>
