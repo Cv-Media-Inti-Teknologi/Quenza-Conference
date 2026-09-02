@@ -72,6 +72,9 @@ jobs:
       # =========================================================================
       # 4. PREPARE APPLICATION STATE & DATABASE
       # =========================================================================
+      - name: Copy Environment File
+        run: cp .env.example .env
+
       - name: Prepare SQLite Database & Directory Permissions
         run: |
           mkdir -p database
@@ -79,7 +82,8 @@ jobs:
           chmod -R 775 storage bootstrap/cache
 
       - name: Generate Application Key
-        run: php artisan key:generate --ansi --env=testing
+        run: php artisan key:generate --ansi
+
 
       # =========================================================================
       # 5. LINT & CODE QUALITY CHECK

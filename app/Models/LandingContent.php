@@ -45,7 +45,7 @@ class LandingContent extends Model
     {
         $content = self::first();
 
-        if (!$content) {
+        if (! $content) {
             $content = self::create([
                 'conference_title' => 'International Conference on Information Technology 2026',
                 'conference_theme' => 'AI for a Sustainable Future',

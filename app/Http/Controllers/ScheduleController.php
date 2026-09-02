@@ -29,18 +29,18 @@ class ScheduleController extends Controller
             'scheduleParams' => $settings,
             'rooms' => Room::all(),
             // Fetch real schedules from DB, not from session
-            'allocations' => Schedule::with(['paper.author', 'room'])->get()->map(function($schedule) {
+            'allocations' => Schedule::with(['paper.author', 'room'])->get()->map(function ($schedule) {
                 return [
                     'id' => $schedule->paper_id,
                     'paper' => $schedule->paper->title,
                     'author' => $schedule->paper->author?->name ?? 'Unknown Author',
                     'room' => $schedule->room->name,
-                    'time' => Carbon::parse($schedule->scheduled_date)->format('d M') . ' ' . Carbon::parse($schedule->start_time)->format('H:i'),
+                    'time' => Carbon::parse($schedule->scheduled_date)->format('d M').' '.Carbon::parse($schedule->start_time)->format('H:i'),
                     'method' => $schedule->method,
                     'type' => 'Oral',
-                    'is_locked' => $schedule->is_locked
+                    'is_locked' => $schedule->is_locked,
                 ];
-            })->toArray()
+            })->toArray(),
         ]);
     }
 
@@ -55,8 +55,8 @@ class ScheduleController extends Controller
 
         $setting = EventSetting::first();
         $setting->event_days = (int) $validated['event_days'];
-        $setting->start_time = $validated['start_time'] . ':00';
-        $setting->end_time = $validated['end_time'] . ':00';
+        $setting->start_time = $validated['start_time'].':00';
+        $setting->end_time = $validated['end_time'].':00';
         $setting->presentation_duration_minutes = (int) $validated['presenter_duration'];
         $setting->save();
 
@@ -67,7 +67,7 @@ class ScheduleController extends Controller
     {
         // 1. Fetch Real Configuration
         $config = EventSetting::first();
-        if (!$config) {
+        if (! $config) {
             return back()->with('error', 'Konfigurasi event belum diatur.');
         }
 
@@ -92,7 +92,7 @@ class ScheduleController extends Controller
         // 4. Greedy Algorithm
         $roomUsage = []; // $roomUsage[room_id][day] = used_minutes
         $authorSchedules = []; // $authorSchedules[author_id][day][start_time] = true
-        
+
         $newSchedules = [];
         $todayDate = Carbon::today();
 
@@ -105,15 +105,17 @@ class ScheduleController extends Controller
             $assigned = false;
 
             for ($day = 1; $day <= $config->event_days; $day++) {
-                if ($assigned) break;
+                if ($assigned) {
+                    break;
+                }
 
-                if (!isset($roomUsage[$roomId][$day])) {
+                if (! isset($roomUsage[$roomId][$day])) {
                     $roomUsage[$roomId][$day] = 0;
                 }
 
                 while (($roomUsage[$roomId][$day] + $config->presentation_duration_minutes) <= $dailyDuration) {
                     $usedMinutes = $roomUsage[$roomId][$day];
-                    
+
                     // Hitung jam mulai
                     $presentationStart = Carbon::parse($config->start_time)->addMinutes($usedMinutes);
                     $presentationEnd = $presentationStart->copy()->addMinutes($config->presentation_duration_minutes);
@@ -121,14 +123,14 @@ class ScheduleController extends Controller
                     $scheduleDate = $todayDate->copy()->addDays($day - 1);
 
                     // Cek double booking
-                    if (!isset($authorSchedules[$authorId][$day][$timeKey])) {
+                    if (! isset($authorSchedules[$authorId][$day][$timeKey])) {
                         // Alokasikan dan simpan ke Database
                         Schedule::create([
                             'paper_id' => $paper->id,
                             'room_id' => $roomId,
                             'scheduled_date' => $scheduleDate,
-                            'start_time' => $scheduleDate->format('Y-m-d') . ' ' . $presentationStart->format('H:i:s'),
-                            'end_time' => $scheduleDate->format('Y-m-d') . ' ' . $presentationEnd->format('H:i:s'),
+                            'start_time' => $scheduleDate->format('Y-m-d').' '.$presentationStart->format('H:i:s'),
+                            'end_time' => $scheduleDate->format('Y-m-d').' '.$presentationEnd->format('H:i:s'),
                             'method' => 'Auto-Scheduled AI',
                             'is_locked' => false,
                         ]);
@@ -136,7 +138,7 @@ class ScheduleController extends Controller
                         $roomUsage[$roomId][$day] += $config->presentation_duration_minutes;
                         $authorSchedules[$authorId][$day][$timeKey] = true;
                         $assigned = true;
-                        break; 
+                        break;
                     } else {
                         // Jika bentrok, lewatkan slot ini
                         $roomUsage[$roomId][$day] += $config->presentation_duration_minutes;

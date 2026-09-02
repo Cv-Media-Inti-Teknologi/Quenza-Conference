@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\LandingContent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -17,6 +15,7 @@ class CmsLandingTest extends TestCase
     use RefreshDatabase;
 
     protected User $superAdmin;
+
     protected User $participant;
 
     protected function setUp(): void

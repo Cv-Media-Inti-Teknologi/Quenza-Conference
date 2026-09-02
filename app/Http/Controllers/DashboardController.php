@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Paper;
-use App\Models\Transaction;
 use App\Models\Expense;
+use App\Models\Paper;
 use App\Models\Room;
-use Illuminate\Http\Request;
+use App\Models\Transaction;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -15,13 +14,13 @@ class DashboardController extends Controller
     {
         // Format Currency Helper
         $formatCurrency = function ($amount) {
-            return 'Rp ' . number_format((float)$amount, 0, ',', '.');
+            return 'Rp '.number_format((float) $amount, 0, ',', '.');
         };
 
         // Real Database Queries
         $totalPapers = Paper::count();
         $ticketsSold = Transaction::where('type', 'registration')->where('status', 'paid')->count();
-        
+
         $cashIn = Transaction::where('status', 'paid')->sum('amount');
         $cashOut = Expense::where('status', 'approved')->sum('amount');
 
@@ -30,25 +29,25 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get()
-            ->map(function($t) use ($formatCurrency) {
+            ->map(function ($t) use ($formatCurrency) {
                 return [
-                    'id' => $t->reference_code ?? 'TRX-' . $t->id,
+                    'id' => $t->reference_code ?? 'TRX-'.$t->id,
                     'name' => $t->user->name ?? 'Unknown',
                     'amount' => $formatCurrency($t->amount),
                     'desc' => $t->description ?? 'Pemasukan',
                     'date' => $t->created_at->format('d/m/Y'),
-                    'status' => $t->status === 'paid' ? 'Paid' : ucfirst($t->status)
+                    'status' => $t->status === 'paid' ? 'Paid' : ucfirst($t->status),
                 ];
             });
 
         // Room Assignments (Real data)
-        $roomAssignments = Room::all()->map(function($room) {
+        $roomAssignments = Room::all()->map(function ($room) {
             return [
                 'name' => $room->name,
                 'topic' => $room->topic,
                 'occupied' => 0, // Placeholder until schedule is fully tracked
                 'capacity' => $room->capacity,
-                'status' => 'normal'
+                'status' => 'normal',
             ];
         });
 
@@ -62,7 +61,7 @@ class DashboardController extends Controller
         ];
 
         // Clean up empty status
-        $paperStatus = array_values(array_filter($paperStatus, fn($item) => $item['value'] > 0));
+        $paperStatus = array_values(array_filter($paperStatus, fn ($item) => $item['value'] > 0));
         if (empty($paperStatus)) {
             $paperStatus = [['name' => 'No Data', 'value' => 1, 'color' => '#e2e8f0']];
         }
@@ -85,7 +84,7 @@ class DashboardController extends Controller
             'cash_out' => [
                 'value' => $formatCurrency($cashOut),
                 'label' => 'Total Pengeluaran',
-            ]
+            ],
         ];
 
         $timeline = [
@@ -106,8 +105,8 @@ class DashboardController extends Controller
             [
                 'type' => 'INFO',
                 'title' => 'Sistem Terhubung',
-                'desc' => 'Dashboard dan modul Keuangan kini terhubung ke database realtime.'
-            ]
+                'desc' => 'Dashboard dan modul Keuangan kini terhubung ke database realtime.',
+            ],
         ];
 
         return Inertia::render('Dashboard', [

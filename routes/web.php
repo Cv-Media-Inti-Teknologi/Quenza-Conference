@@ -2,20 +2,23 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AiNotificationController;
+use App\Http\Controllers\AiSimilarityController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CmsLandingController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\LandingController;
-use App\Http\Controllers\PortalController;
-use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PaperReviewController;
-use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\FinanceController;
-use App\Http\Controllers\TicketingController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\PaperReviewController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PortalController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewerController;
+use App\Http\Controllers\RoomController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\TicketingController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -41,7 +44,7 @@ Route::middleware('auth')->post('/profile', [ProfileController::class, 'update']
 // Admin Routes (Group protected by auth and role:super_admin middleware)
 Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    
+
     // CMS Landing Page routes
     Route::get('/cms', [CmsLandingController::class, 'index'])->name('admin.cms');
     Route::get('/cms-landing', [CmsLandingController::class, 'index'])->name('admin.cms-landing');
@@ -63,7 +66,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
 
     // Paper & Review Management routes
     Route::get('/papers-review', [PaperReviewController::class, 'index'])->name('admin.papers-review');
-    
+
     // API endpoints for Paper Review
     Route::get('/api/papers', [PaperReviewController::class, 'getPapersTable']);
     Route::get('/api/papers/{id}', [PaperReviewController::class, 'getPaperDetail']);
@@ -73,8 +76,8 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::get('/api/papers-review/metrics', [PaperReviewController::class, 'getDashboardMetrics']);
 
     // API endpoints for AI Smart Assistant
-    Route::post('/api/ai/smart-notification', [\App\Http\Controllers\AiNotificationController::class, 'generateReminderDraft']);
-    Route::post('/api/ai/send-notification', [\App\Http\Controllers\AiNotificationController::class, 'sendReminderEmail']);
+    Route::post('/api/ai/smart-notification', [AiNotificationController::class, 'generateReminderDraft']);
+    Route::post('/api/ai/send-notification', [AiNotificationController::class, 'sendReminderEmail']);
 
     // User Management routes
     Route::get('/users', [UserController::class, 'index'])->name('admin.users');
@@ -86,7 +89,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::get('/finance', [FinanceController::class, 'index'])->name('admin.finance');
     Route::get('/api/finance/metrics', [FinanceController::class, 'getMetrics']);
     Route::get('/api/finance/chart', [FinanceController::class, 'getFinanceChart']);
-     Route::get('/api/finance/transactions', [FinanceController::class, 'getTransactions']);
+    Route::get('/api/finance/transactions', [FinanceController::class, 'getTransactions']);
     Route::post('/api/finance/transactions', [FinanceController::class, 'createTransaction']);
     Route::delete('/api/finance/transactions/{transaction}', [FinanceController::class, 'deleteTransaction']);
     Route::get('/api/finance/expenses', [FinanceController::class, 'getExpenses']);
@@ -101,7 +104,6 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     // Payment routes
     Route::post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
     Route::post('/api/payment/mark-as-paid', [PaymentController::class, 'markAsPaid']);
-    Route::post('/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
 
     // Ticketing routes
     Route::get('/ticketing', [TicketingController::class, 'index'])->name('admin.ticketing');
@@ -127,4 +129,5 @@ Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function
     Route::get('/api/history', [ReviewerController::class, 'getReviewHistory']);
 });
 
-Route::post('/api/ai/check-similarity', [\App\Http\Controllers\AiSimilarityController::class, 'checkSimilarity']);
+Route::post('/admin/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
+Route::post('/api/ai/check-similarity', [AiSimilarityController::class, 'checkSimilarity']);
