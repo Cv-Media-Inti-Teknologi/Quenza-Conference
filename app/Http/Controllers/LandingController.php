@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\LandingContent;
+use App\Models\TicketPricing;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +18,7 @@ class LandingController extends Controller
     public function index(): Response
     {
         $landingData = LandingContent::current();
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
 
         return Inertia::render('LandingPage', [
             'landingData' => $landingData,
@@ -44,7 +46,23 @@ class LandingController extends Controller
 
     public function pricing(): Response
     {
-        return $this->renderPage('PricingPage');
+        $landingData = LandingContent::current();
+        $user = auth()->user();
+        $ticketPricing = TicketPricing::all();
+
+        return Inertia::render('PricingPage', [
+            'landingData' => $landingData,
+            'ticketPricing' => $ticketPricing,
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar,
+                ] : null,
+            ],
+        ]);
     }
 
     private function renderPage(string $page): Response

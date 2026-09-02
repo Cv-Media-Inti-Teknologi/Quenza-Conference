@@ -74,12 +74,15 @@ export default function ReviewDetail({ paperId }) {
                                 <p className="text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1">
                                     Similarity Score
                                 </p>
-                                <div className={`inline-block px-3 py-1 rounded-quenza-md text-quenza-small font-quenza-semibold ${
-                                    paper.similarity_score <= 10 ? 'bg-green-100 text-green-700' :
-                                    paper.similarity_score <= 30 ? 'bg-yellow-100 text-yellow-700' :
-                                    'bg-red-100 text-red-700'
-                                }`}>
-                                    {paper.similarity_score}%
+                                <div className="flex items-center gap-2">
+                                    <div className={`inline-block px-3 py-1 rounded-quenza-md text-quenza-small font-quenza-semibold ${
+                                        paper.similarity_score === null ? 'bg-gray-100 text-gray-700' :
+                                        paper.similarity_score <= 10 ? 'bg-green-100 text-green-700' :
+                                        paper.similarity_score <= 30 ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-red-100 text-red-700'
+                                    }`}>
+                                        {paper.similarity_score !== null ? `${paper.similarity_score}%` : 'Sedang Diproses...'}
+                                    </div>
                                 </div>
                             </div>
 

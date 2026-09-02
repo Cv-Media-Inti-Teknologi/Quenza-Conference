@@ -1,241 +1,155 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers;
 
 use App\Models\EventSetting;
 use App\Models\Paper;
 use App\Models\Room;
 use App\Models\Schedule;
+use App\Services\AiSchedulingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ScheduleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): Response
     {
-        $rooms = Room::query()->get()->map(function (Room $room) {
-            return [
-                'id' => $room->id,
-                'name' => $room->name,
-                'location' => $room->location,
-                'capacity' => $room->capacity . ' kursi',
-                'topic' => $room->topic,
-            ];
-        });
-
-        $setting = EventSetting::query()->first();
-        if (!$setting) {
-            $setting = EventSetting::create([
-                'event_days' => 2,
-                'start_time' => '11:00',
-                'end_time' => '16:00',
-                'break_duration_minutes' => 15,
-                'presentation_duration_minutes' => 40,
-            ]);
-        }
-
-        $scheduleParams = [
-            'days' => 2,
-            'start_time' => '11:00',
-            'end_time' => '16:00',
-            'break_duration' => 15,
-            'presenter_duration' => 40
-        ];
-
-        $allocations = session('schedule_allocations', [
-            ['id' => 1, 'paper' => 'Federated Learning for Edge IoT Devices', 'author' => 'Kevin Wijaya', 'room' => 'Ruang Garuda'],
-            ['id' => 2, 'paper' => 'Explainable AI in Medical Diagnosis', 'author' => 'Nadia Putri', 'room' => 'Ruang Garuda'],
-            ['id' => 3, 'paper' => 'Microservice Resilience Patterns', 'author' => 'Farhan Aditya', 'room' => 'Ruang Kartika'],
-            ['id' => 4, 'paper' => 'Real-Time Stream Processing at Scale', 'author' => 'Grace Amelia', 'room' => 'Virtual Room A'],
+        $settings = EventSetting::first() ?? EventSetting::create([
+            'event_days' => 2,
+            'start_time' => '13:00',
+            'end_time' => '17:00',
+            'break_duration_minutes' => 0,
+            'presentation_duration_minutes' => 60,
         ]);
 
         return Inertia::render('Schedule', [
-            'rooms' => $rooms,
-            'scheduleParams' => $scheduleParams,
-            'allocations' => $allocations,
+            'scheduleParams' => $settings,
+            'rooms' => Room::all(),
+            // Fetch real schedules from DB, not from session
+            'allocations' => Schedule::with(['paper.author', 'room'])->get()->map(function ($schedule) {
+                return [
+                    'id' => $schedule->paper_id,
+                    'paper' => $schedule->paper->title,
+                    'author' => $schedule->paper->author?->name ?? 'Unknown Author',
+                    'room' => $schedule->room->name,
+                    'time' => Carbon::parse($schedule->scheduled_date)->format('d M').' '.Carbon::parse($schedule->start_time)->format('H:i'),
+                    'method' => $schedule->method,
+                    'type' => 'Oral',
+                    'is_locked' => $schedule->is_locked,
+                ];
+            })->toArray(),
         ]);
     }
 
-    /**
-     * Store or update schedule parameters.
-     */
     public function updateScheduleParams(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'days' => ['required', 'integer', 'min:1'],
-            'start_time' => ['required', 'string'],
-            'end_time' => ['required', 'string'],
-            'break_duration' => ['required', 'integer', 'min:0'],
-            'presenter_duration' => ['required', 'integer', 'min:1'],
+            'event_days' => 'required|integer|min:1',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+            'presenter_duration' => 'required|integer|min:1',
         ]);
 
-        $setting = EventSetting::query()->first();
-        if (!$setting) {
-            $setting = new EventSetting();
-        }
-
-        $setting->event_days = (int) $validated['days'];
-        $setting->start_time = $validated['start_time'];
-        $setting->end_time = $validated['end_time'];
-        $setting->break_duration_minutes = (int) $validated['break_duration'];
+        $setting = EventSetting::first();
+        $setting->event_days = (int) $validated['event_days'];
+        $setting->start_time = $validated['start_time'].':00';
+        $setting->end_time = $validated['end_time'].':00';
         $setting->presentation_duration_minutes = (int) $validated['presenter_duration'];
         $setting->save();
 
         return back()->with('success', 'Parameter penjadwalan berhasil diupdate');
     }
 
-    public function autoSchedule(Request $request)
+    public function autoSchedule(Request $request, AiSchedulingService $aiService)
     {
-        // =========================================================================
-        // BAGIAN 1: PERSIAPAN DATA (DUMMY VS REAL DATABASE)
-        // =========================================================================
+        // 1. Fetch Real Configuration
+        $config = EventSetting::first();
+        if (! $config) {
+            return back()->with('error', 'Konfigurasi event belum diatur.');
+        }
 
-        // [DUMMY CONFIGURATION - DARI ADMIN SETTINGS]:
-        // Misal: Admin mengatur event 2 hari, tiap hari sesi paralel 240 menit (4 jam), tiap orang dijatah 60 menit (1 jam).
-        $config = [
-            'total_days' => 2,
-            'daily_duration_minutes' => 240, 
-            'time_per_author_minutes' => 60,
-            'start_time' => '13:00' // Sesi dimulai jam 1 siang setiap hari
-        ];
+        // Hitung total durasi harian dalam menit
+        $startTime = Carbon::parse($config->start_time);
+        $endTime = Carbon::parse($config->end_time);
+        $dailyDuration = abs($startTime->diffInMinutes($endTime));
 
-        // [DUMMY DATA SEMENTARA]:
-        // Data Papers dengan status pembayaran (is_paid) dan tipe presentasi (type)
-        $papers = [
-            ['id' => 1, 'paper' => 'Federated Learning for Edge IoT Devices', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'],
-            ['id' => 2, 'paper' => 'Explainable AI in Medical Diagnosis', 'author_id' => 'USR-02', 'author_name' => 'Nadia Putri', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'],
-            ['id' => 3, 'paper' => 'Advanced Neural Networks', 'author_id' => 'USR-01', 'author_name' => 'Kevin Wijaya', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // Paper ke-2 Kevin
-            ['id' => 4, 'paper' => 'Microservice Resilience Patterns', 'author_id' => 'USR-03', 'author_name' => 'Farhan Aditya', 'topic_match' => 2, 'is_paid' => true, 'type' => 'oral'],
-            ['id' => 5, 'paper' => 'Docker Orchestration', 'author_id' => 'USR-04', 'author_name' => 'Budi Santoso', 'topic_match' => 2, 'is_paid' => false, 'type' => 'oral'], // Belum bayar, harusnya diskip
-            ['id' => 6, 'paper' => 'Real-Time Stream Processing at Scale', 'author_id' => 'USR-05', 'author_name' => 'Grace Amelia', 'topic_match' => 3, 'is_paid' => true, 'type' => 'poster'], // Tipe poster
-            ['id' => 7, 'paper' => 'AI for Smart Farming', 'author_id' => 'USR-06', 'author_name' => 'Bambang Pamungkas', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // 4th oral in topic 1
-            ['id' => 8, 'paper' => 'Computer Vision in Agrotech', 'author_id' => 'USR-07', 'author_name' => 'Siti Aminah', 'topic_match' => 1, 'is_paid' => true, 'type' => 'oral'], // 5th oral in topic 1 -> will spillover to Day 2
-        ];
+        // 2. Fetch Real Data
+        $rooms = Room::all();
+        // Hanya jadwalkan paper yang statusnya accepted atau under_review (sementara agar ada data)
+        // Dan diasumsikan semua oral (karena tidak ada kolom type di db saat ini)
+        $papers = Paper::whereIn('status', ['accepted', 'under_review'])->get();
 
-        // 2. Data Rooms
-        $rooms = [
-            1 => 'Ruang Garuda (Topic 1)',
-            2 => 'Ruang Kartika (Topic 2)',
-            3 => 'Virtual Room A (Topic 3)'
-        ];
+        if ($rooms->isEmpty() || $papers->isEmpty()) {
+            return back()->with('error', 'Ruangan atau paper tidak tersedia.');
+        }
 
-        // =========================================================================
-        // BAGIAN 2: LOGIKA ALGORITMA GREEDY MULTI-DAY
-        // =========================================================================
-        $allocations = [];
-        
-        // Filter paper: Hanya yang sudah BAYAR
-        $eligiblePapers = array_filter($papers, function($p) {
-            return $p['is_paid'] === true;
-        });
+        // 3. AI Clustering (Pengelompokan Topik)
+        $topicMapping = $aiService->clusterPapersToRooms($papers, $rooms);
 
-        // Pisahkan antrean Oral dan Poster
-        $oralPapers = array_filter($eligiblePapers, function($p) { return $p['type'] === 'oral'; });
-        $posterPapers = array_filter($eligiblePapers, function($p) { return $p['type'] === 'poster'; });
+        // 4. Greedy Algorithm
+        $roomUsage = []; // $roomUsage[room_id][day] = used_minutes
+        $authorSchedules = []; // $authorSchedules[author_id][day][start_time] = true
 
-        // State untuk melacak penggunaan waktu per ruangan per hari
-        // Bentuk: $roomUsage[room_id][day] = total_minutes_used
-        $roomUsage = [];
-        
-        // State untuk melacak jadwal presentasi author per hari per waktu untuk menghindari bentrok
-        // Bentuk: $authorSchedules[author_id][day][start_time] = true
-        $authorSchedules = [];
+        $newSchedules = [];
+        $todayDate = Carbon::today();
 
-        // Fungsi pembantu menghitung jam string (misal: '13:00' + 60 menit = '14:00')
-        $addMinutes = function($time, $minutes) {
-            $timeInfo = explode(':', $time);
-            $totalMins = ((int)$timeInfo[0] * 60) + (int)$timeInfo[1] + $minutes;
-            $h = floor($totalMins / 60);
-            $m = $totalMins % 60;
-            return sprintf('%02d:%02d', $h, $m);
-        };
+        // Kosongkan jadwal lama yang belum di-lock
+        Schedule::where('is_locked', false)->delete();
 
-        // --- PENJADWALAN ORAL (PRESENTASI LISAN) ---
-        foreach ($oralPapers as $paper) {
-            $roomId = $paper['topic_match'];
-            $roomName = $rooms[$roomId] ?? 'Ruang Tambahan';
-            $authorId = $paper['author_id'];
-            
+        foreach ($papers as $paper) {
+            $roomId = $topicMapping[$paper->id] ?? $rooms->first()->id;
+            $authorId = $paper->user_id;
             $assigned = false;
 
-            // Iterasi per hari (Day 1 to total_days)
-            for ($day = 1; $day <= $config['total_days']; $day++) {
-                if ($assigned) break;
+            for ($day = 1; $day <= $config->event_days; $day++) {
+                if ($assigned) {
+                    break;
+                }
 
-                // Inisialisasi usage jika belum ada
-                if (!isset($roomUsage[$roomId][$day])) {
+                if (! isset($roomUsage[$roomId][$day])) {
                     $roomUsage[$roomId][$day] = 0;
                 }
 
-                // Coba cari slot kosong di hari ini
-                while (($roomUsage[$roomId][$day] + $config['time_per_author_minutes']) <= $config['daily_duration_minutes']) {
+                while (($roomUsage[$roomId][$day] + $config->presentation_duration_minutes) <= $dailyDuration) {
                     $usedMinutes = $roomUsage[$roomId][$day];
-                    $presentationTime = $addMinutes($config['start_time'], $usedMinutes);
-                    
-                    // Cek double booking
-                    if (!isset($authorSchedules[$authorId][$day][$presentationTime])) {
-                        // Alokasikan
-                        $allocations[] = [
-                            'id' => $paper['id'],
-                            'paper' => $paper['paper'],
-                            'author' => $paper['author_name'] . ' (Hari ' . $day . ', ' . $presentationTime . ')',
-                            'room' => $roomName,
-                            'type' => 'Oral'
-                        ];
 
-                        $roomUsage[$roomId][$day] += $config['time_per_author_minutes'];
-                        $authorSchedules[$authorId][$day][$presentationTime] = true;
+                    // Hitung jam mulai
+                    $presentationStart = Carbon::parse($config->start_time)->addMinutes($usedMinutes);
+                    $presentationEnd = $presentationStart->copy()->addMinutes($config->presentation_duration_minutes);
+                    $timeKey = $presentationStart->format('H:i');
+                    $scheduleDate = $todayDate->copy()->addDays($day - 1);
+
+                    // Cek double booking
+                    if (! isset($authorSchedules[$authorId][$day][$timeKey])) {
+                        // Alokasikan dan simpan ke Database
+                        Schedule::create([
+                            'paper_id' => $paper->id,
+                            'room_id' => $roomId,
+                            'scheduled_date' => $scheduleDate,
+                            'start_time' => $scheduleDate->format('Y-m-d').' '.$presentationStart->format('H:i:s'),
+                            'end_time' => $scheduleDate->format('Y-m-d').' '.$presentationEnd->format('H:i:s'),
+                            'method' => 'Auto-Scheduled AI',
+                            'is_locked' => false,
+                        ]);
+
+                        $roomUsage[$roomId][$day] += $config->presentation_duration_minutes;
+                        $authorSchedules[$authorId][$day][$timeKey] = true;
                         $assigned = true;
-                        break; // Keluar dari loop while
+                        break;
                     } else {
-                        // Bentrok, majukan waktu ruangan (slot kosong dibiarkan/diisi orang berikutnya)
-                        $roomUsage[$roomId][$day] += $config['time_per_author_minutes'];
+                        // Jika bentrok, lewatkan slot ini
+                        $roomUsage[$roomId][$day] += $config->presentation_duration_minutes;
                     }
                 }
             }
-
-            if (!$assigned) {
-                // Berarti semua hari penuh atau terjadi bentrok tak terpecahkan.
-                $allocations[] = [
-                    'id' => $paper['id'],
-                    'paper' => $paper['paper'],
-                    'author' => $paper['author_name'] . ' (⚠️ Gagal - Kapasitas Penuh)',
-                    'room' => 'Belum dialokasikan',
-                    'type' => 'Oral'
-                ];
-            }
         }
 
-        // --- PENJADWALAN POSTER ---
-        // Poster biasanya ditaruh di sesi "Poster Hall" tanpa batasan slot per jam yang ketat
-        foreach ($posterPapers as $paper) {
-            $allocations[] = [
-                'id' => $paper['id'],
-                'paper' => $paper['paper'],
-                'author' => $paper['author_name'] . ' (Sepanjang Hari)',
-                'room' => 'Poster Exhibition Hall',
-                'type' => 'Poster'
-            ];
-        }
-
-        // Simpan ke session untuk ditangkap oleh frontend
-        session(['schedule_allocations' => $allocations]);
-
-        return redirect()->back()->with('success', 'Algoritma Auto-Scheduling Multi-Day & Tipe Paper berhasil dijalankan!');
+        return redirect()->back()->with('success', 'AI Auto-Scheduling berhasil memetakan naskah ke ruangan & jam!');
     }
 
-    /**
-     * Publish the final schedule.
-     */
     public function publishSchedule(Request $request): RedirectResponse
     {
         Schedule::query()->update(['is_locked' => true]);

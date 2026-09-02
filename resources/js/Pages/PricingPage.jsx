@@ -1,33 +1,80 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 
-export default function PricingPage({ auth }) {
+export default function PricingPage({ auth, ticketPricing = [] }) {
+    // Use dynamic pricing if available
+    const pricingMap = {};
+    ticketPricing.forEach(p => {
+        pricingMap[p.category] = {
+            regular_price: p.regular_price || 0,
+            late_price: p.late_price || 0,
+        };
+    });
+
     const plans = [
         {
             title: 'Participant',
-            subtitle: 'Non-Pemakalah',
-            price: 'Rp 650.000',
-            detail: '/ orang',
-            features: ['Akses Room Hybrid & Offline', 'E-Certificate Kehadiran', 'Materi Presentasi & Prosiding'],
+            subtitle: 'Offline',
+            description: 'Untuk peserta yang menghadiri konferensi secara langsung.',
+            category: 'participant',
+            prices: [
+                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
+                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
+                { label: 'International', price: 20, isUSD: true },
+            ],
+            features: ['Akses penuh selama konferensi', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
             primary: false,
+            buttonLabel: 'Beli Tiket Peserta',
         },
         {
             title: 'Presenter',
-            subtitle: 'Pemakalah Reguler',
-            price: 'Rp 1.500.000',
-            detail: '/ paper',
-            features: ['Presentasi Oral / Poster Paralel', 'Double-Blind Review & AI Scoring', 'Sertifikat Presenter Resmi'],
+            subtitle: 'Pemakalah',
+            description: 'Untuk peserta yang mempresentasikan makalah.',
+            category: 'author',
+            prices: [
+                { label: 'Dosen/Alumni', price: pricingMap['president']?.regular_price || 5000000 },
+                { label: 'Mahasiswa', price: pricingMap['author']?.regular_price || 1500000 },
+                { label: 'International', price: 40, isUSD: true },
+            ],
+            features: ['Akses penuh selama konferensi', 'Kesempatan mempresentasikan makalah', 'Publikasi dalam prosiding', 'Sertifikat sebagai pemakalah', 'Akses ke seluruh sesi dan workshop'],
             primary: true,
+            buttonLabel: 'Daftar Sebagai Author',
         },
         {
-            title: 'International',
-            subtitle: 'Overseas Author',
-            price: '$150 USD',
-            detail: '/ paper',
-            features: ['Online & In-person Presentation', 'International Proceeding', 'Online Payment Gateway'],
+            title: 'Participant',
+            subtitle: 'Online',
+            description: 'Untuk peserta yang mengikuti konferensi secara virtual.',
+            category: 'participant',
+            prices: [
+                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
+                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
+                { label: 'International', price: 10, isUSD: true },
+            ],
+            features: ['Akses penuh konferensi secara daring', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
             primary: false,
+            buttonLabel: 'Beli Tiket Peserta',
         },
     ];
+
+    const formatCurrency = (amount, isUSD = false) => {
+        if (isUSD) return `$ ${amount}`;
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
+    };
+
+    const handleBuyTicket = (category) => {
+        router.post('/admin/api/payment/initiate', {
+            type: 'registration',
+            payment_method: 'virtual_account',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('Pembayaran berhasil diinisiasi! Silakan selesaikan pembayaran melalui metode yang dipilih.');
+            },
+            onError: () => {
+                alert('Gagal memulai pembayaran');
+            },
+        });
+    };
 
     return (
         <div className="min-h-screen bg-quenza-bg text-quenza-text-primary flex flex-col font-sans selection:bg-quenza-primary selection:text-white antialiased">
@@ -102,7 +149,7 @@ export default function PricingPage({ auth }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                             {plans.map((plan) => (
                                 <div
-                                    key={plan.title}
+                                    key={plan.title + plan.subtitle}
                                     className={`bg-white rounded-quenza-2xl border ${plan.primary ? 'border-2 border-quenza-secondary shadow-xl scale-[1.02]' : 'border-gray-200 shadow-xs'} p-8 flex flex-col justify-between hover:shadow-md transition-all relative`}
                                 >
                                     {plan.primary && (
@@ -119,12 +166,16 @@ export default function PricingPage({ auth }) {
                                             {plan.subtitle}
                                         </h3>
                                         <p className="text-quenza-small text-gray-500 mt-1">
-                                            {plan.title === 'Participant' ? 'Akses seluruh sesi plenary & paralel.' : plan.title === 'Presenter' ? 'Registrasi 1 naskah paper lolos review.' : 'For international participants & authors.'}
+                                            {plan.description}
                                         </p>
-                                        <div className="my-6">
-                                            <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">{plan.price}</span>
-                                            <span className="text-quenza-small text-gray-500"> {plan.detail}</span>
-                                        </div>
+                                        {plan.prices.map((price, idx) => (
+                                            <div key={idx} className="my-4">
+                                                <span className={`font-quenza-bold text-gray-900 ${idx === 0 ? 'text-quenza-4xlarge' : idx === 1 ? 'text-quenza-3xlarge' : 'text-quenza-xlarge'}`}>
+                                                    {formatCurrency(price.price, price.isUSD)}
+                                                </span>
+                                                <span className="text-quenza-small text-gray-500"> / {price.label}</span>
+                                            </div>
+                                        ))}
                                         <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
                                             {plan.features.map((feature) => (
                                                 <li key={feature} className="flex items-center gap-2">
@@ -136,12 +187,16 @@ export default function PricingPage({ auth }) {
                                             ))}
                                         </ul>
                                     </div>
-                                    <Link
-                                        href="/login"
-                                        className={plan.primary ? 'quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white' : 'quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center'}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBuyTicket(plan.category)}
+                                        className={plan.primary 
+                                            ? 'quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white' 
+                                            : 'quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center'
+                                        }
                                     >
-                                        {plan.primary ? 'Daftar Sebagai Author' : plan.title === 'Participant' ? 'Beli Tiket Peserta' : 'Register Overseas'}
-                                    </Link>
+                                        {plan.buttonLabel}
+                                    </button>
                                 </div>
                             ))}
                         </div>

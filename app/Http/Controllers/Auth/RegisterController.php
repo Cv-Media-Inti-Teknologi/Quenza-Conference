@@ -21,11 +21,11 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'username'    => ['required', 'string', 'max:255', 'unique:users,username'],
-            'phone'       => ['required', 'string', 'max:20'],
-            'email'       => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'institution' => ['required', 'string', 'max:255'],
-            'password'    => [
+            'password' => [
                 'required',
                 'string',
                 'min:8',
@@ -37,13 +37,13 @@ class RegisterController extends Controller
         ]);
 
         $user = User::create([
-            'name'        => $validated['username'],
-            'username'    => $validated['username'],
-            'phone'       => $validated['phone'],
-            'email'       => $validated['email'],
+            'name' => $validated['username'],
+            'username' => $validated['username'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'],
             'institution' => $validated['institution'],
-            'password'    => Hash::make($validated['password']),
-            'role'        => 'participant',
+            'password' => Hash::make($validated['password']),
+            'role' => 'participant',
         ]);
 
         Auth::login($user);

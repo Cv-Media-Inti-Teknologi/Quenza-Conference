@@ -19,13 +19,13 @@ class AiRecommendationService
 
         // 1. Fetch available reviewers
         $reviewers = User::where('role', 'reviewer')->get(['id', 'name', 'expertise']);
-        
+
         if ($reviewers->isEmpty()) {
             return [];
         }
 
-        $reviewerListStr = $reviewers->map(function($r) {
-            return "ID: {$r->id} | Name: {$r->name} | Expertise: " . ($r->expertise ?? 'General');
+        $reviewerListStr = $reviewers->map(function ($r) {
+            return "ID: {$r->id} | Name: {$r->name} | Expertise: ".($r->expertise ?? 'General');
         })->implode("\n");
 
         // 2. Build the prompt from the architecture document
@@ -58,7 +58,7 @@ Daftar Reviewer Tersedia:
 
         // 3. Call LLM API (Using generic OpenAI compatible endpoint format)
         $apiKey = env('OPENAI_API_KEY');
-        
+
         if (empty($apiKey)) {
             Log::warning('OPENAI_API_KEY is not set. Returning fallback recommendations.');
             $errorMessage = 'OPENAI_API_KEY tidak ditemukan di .env';
@@ -66,49 +66,56 @@ Daftar Reviewer Tersedia:
             $errorMessage = 'Gagal terhubung ke AI Gateway Quenza.';
         }
 
-        if (!empty($apiKey)) {
+        if (! empty($apiKey)) {
             try {
-            $response = Http::withoutVerifying()
-                ->withToken($apiKey)
-                ->withHeaders([
-                    'User-Agent' => 'Quenza-App/1.0',
-                    'Accept' => 'application/json',
-                ])
-                ->timeout(120)
-                ->post('https://ai-gateway.quenza.id/v1/chat/completions', [
-                    'model' => 'free-model',
-                    'stream' => false,
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => $systemPrompt
+                $response = Http::withoutVerifying()
+                    ->retry(3, 1000)
+                    ->withToken($apiKey)
+                    ->withHeaders([
+                        'Accept' => 'application/json',
+                    ])
+                    ->timeout(120)
+                    ->post('https://ai-gateway.quenza.id/v1/chat/completions', [
+                        'model' => 'free-model',
+                        'stream' => false,
+                        'messages' => [
+                            [
+                                'role' => 'user',
+                                'content' => $systemPrompt,
+                            ],
                         ],
-                    ],
-                    'temperature' => 0.2
-                ]);
+                        'temperature' => 0.2,
+                        'max_tokens' => 300,
+                    ]);
 
-            if ($response->successful()) {
-                $content = $response->json('choices.0.message.content');
-                
-                // Bersihkan potensi blok markdown (```json ... ```) dari gateway Gemini
-                $content = preg_replace('/^```json\s*/i', '', $content);
-                $content = preg_replace('/```$/', '', trim($content));
-                
-                // Parse JSON
-                $data = json_decode($content, true);
-                
-                if (isset($data['recommendations']) && is_array($data['recommendations'])) {
-                    return $data['recommendations'];
+                if ($response->successful()) {
+                    $content = $response->json('choices.0.message.content');
+
+                    // Bersihkan potensi blok markdown (```json ... ```) dari gateway Gemini
+                    $content = preg_replace('/^```json\s*/i', '', $content);
+                    $content = preg_replace('/```$/', '', trim($content));
+
+                    // Parse JSON
+                    $data = json_decode($content, true);
+
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $errorMessage = 'Gagal membaca balasan AI. (Error: '.json_last_error_msg().'). Kemungkinan model berhalusinasi.';
+                        Log::error('JSON Decode Error: '.json_last_error_msg().' | Content: '.$content);
+                    } elseif (isset($data['recommendations']) && is_array($data['recommendations'])) {
+                        return $data['recommendations'];
+                    } else {
+                        $errorMessage = 'Format JSON AI salah (Tidak ada kunci "recommendations").';
+                        Log::error('Invalid AI Response Format. Content: '.$content);
+                    }
+                } else {
+                    $errorMessage = 'API Error ('.$response->status().'). Coba lagi nanti.';
+                    Log::error('LLM API Error: '.$response->body());
                 }
-            } else {
-                $errorMessage = 'API Error (' . $response->status() . '). Coba lagi nanti.';
-                Log::error('LLM API Error: ' . $response->body());
-            }
 
-        } catch (\Exception $e) {
-            $errorMessage = 'Timeout / Koneksi Terputus: ' . $e->getMessage();
-            Log::error('Exception in AI Recommendation: ' . $e->getMessage());
-        }
+            } catch (\Exception $e) {
+                $errorMessage = 'Timeout / Koneksi Terputus: '.$e->getMessage();
+                Log::error('Exception in AI Recommendation: '.$e->getMessage());
+            }
         }
 
         // Return mock data if API fails so the UI can still be seen
@@ -118,8 +125,8 @@ Daftar Reviewer Tersedia:
                 'name' => 'Dr. Simulasi (Sistem Fallback)',
                 'expertise' => 'Status Server AI: Bermasalah',
                 'match_score_percentage' => 0,
-                'reason' => 'Gagal mengambil rekomendasi asli karena: ' . $errorMessage
-            ]
+                'reason' => 'Gagal mengambil rekomendasi asli karena: '.$errorMessage,
+            ],
         ];
     }
 }

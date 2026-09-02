@@ -72,20 +72,17 @@ export default function RoomTable({ rooms = [] }) {
     };
 
     return (
-        <div className="quenza-card rounded-quenza-xl">
-            <div className="flex justify-between items-start mb-6">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-4">
                 <div>
-                    <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Kelola Data Ruangan</h3>
-                    <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Nama, lokasi/online meet, kapasitas, & topik</p>
+                    <h2 className="font-bold text-lg text-gray-900">Kelola Data Ruangan</h2>
+                    <p className="text-xs text-gray-500">Nama, lokasi/online meet, kapasitas, & topik</p>
                 </div>
                 <button 
                     onClick={openAddModal}
-                    className="quenza-btn-secondary text-quenza-small font-quenza-semibold px-4 py-2 rounded-quenza-md shadow-sm flex items-center gap-1.5"
+                    className="bg-[#0b603a] text-white text-xs font-semibold px-4 py-2 rounded-lg hover:bg-emerald-800 transition"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Tambah Ruangan
+                    + Tambah Ruangan
                 </button>
             </div>
 
