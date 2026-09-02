@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('papers', function (Blueprint $table): void {
-            $table->id();
-            $table->string('title');
-            $table->string('author_name');
-            $table->string('status')->default('Unassigned');
-            $table->timestamps();
+        Schema::table('paper_reviews', function (Blueprint $table) {
+            $table->date('deadline_date')->nullable()->after('status');
         });
     }
 
@@ -27,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('papers');
+        Schema::table('paper_reviews', function (Blueprint $table) {
+            $table->dropColumn('deadline_date');
+        });
     }
 };

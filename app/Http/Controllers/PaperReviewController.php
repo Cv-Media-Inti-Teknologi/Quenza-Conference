@@ -48,7 +48,7 @@ class PaperReviewController extends Controller
                 'track' => $paper->track,
                 'similarity_score' => $paper->similarity_score,
                 'status' => $paper->status,
-                'submitted_at' => $paper->submitted_at->format('d/m/Y'),
+                'submitted_at' => $paper->submitted_at?->format('d/m/Y'),
             ];
         });
 
@@ -73,7 +73,7 @@ class PaperReviewController extends Controller
             'track' => $paper->track,
             'similarity_score' => $paper->similarity_score,
             'status' => $paper->status,
-            'submitted_at' => $paper->submitted_at->format('d/m/Y H:i'),
+            'submitted_at' => $paper->submitted_at?->format('d/m/Y H:i'),
             'author' => [
                 'name' => '(Anonymous)',
                 'institution' => '(Hidden)',
