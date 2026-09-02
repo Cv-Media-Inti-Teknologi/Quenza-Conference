@@ -41,7 +41,7 @@ Nama Konferensi: {$data['conference_name']}
 
         // REAL IMPLEMENTATION: Memanggil LLM API Gateway
         $apiKey = env('OPENAI_API_KEY');
-        
+
         if (empty($apiKey)) {
             Log::warning('OPENAI_API_KEY is not set. Returning fallback notification.');
             $errorMessage = 'OPENAI_API_KEY tidak ditemukan di .env';
@@ -49,7 +49,7 @@ Nama Konferensi: {$data['conference_name']}
             $errorMessage = 'Gagal terhubung ke AI Gateway Quenza.';
         }
 
-        if (!empty($apiKey)) {
+        if (! empty($apiKey)) {
             try {
                 $response = Http::withoutVerifying()
                     ->retry(3, 1000)
@@ -65,47 +65,47 @@ Nama Konferensi: {$data['conference_name']}
                         'messages' => [
                             [
                                 'role' => 'user', // Diubah dari system ke user agar AI Gateway tidak bingung
-                                'content' => $systemPrompt
+                                'content' => $systemPrompt,
                             ],
                         ],
                         'temperature' => 0.4,
-                        'max_tokens' => 300
+                        'max_tokens' => 300,
                     ]);
 
                 if ($response->successful()) {
                     $rawBody = $response->body();
-                    
+
                     // BUGS DI GATEWAY: Gateway menambahkan "data: [DONE" di akhir body HTTP
                     $rawBody = preg_replace('/data:\s*\[DONE\].*$/is', '', $rawBody);
                     $rawBody = trim($rawBody);
-                    
+
                     $parsedBody = json_decode($rawBody, true);
                     $content = $parsedBody['choices'][0]['message']['content'] ?? '';
-                    
+
                     // Bersihkan potensi blok markdown (```json ... ```) dari balasan AI
                     $content = preg_replace('/^```json\s*/i', '', $content);
                     $content = preg_replace('/```$/', '', trim($content));
-                    
+
                     // Parse JSON dari dalam konten
                     $result = json_decode($content, true);
-                    
+
                     if (json_last_error() !== JSON_ERROR_NONE) {
-                        $errorMessage = 'Gagal membaca balasan AI. (Error: ' . json_last_error_msg() . '). Kemungkinan model berhalusinasi.';
-                        Log::error('JSON Decode Error: ' . json_last_error_msg() . ' | Content: ' . $content);
+                        $errorMessage = 'Gagal membaca balasan AI. (Error: '.json_last_error_msg().'). Kemungkinan model berhalusinasi.';
+                        Log::error('JSON Decode Error: '.json_last_error_msg().' | Content: '.$content);
                     } elseif (isset($result['email_draft']) && is_array($result['email_draft'])) {
                         return $result['email_draft'];
                     } else {
                         $errorMessage = 'Format JSON AI salah (Tidak ada kunci "email_draft").';
-                        Log::error('Invalid AI Response Format. Content: ' . $content);
+                        Log::error('Invalid AI Response Format. Content: '.$content);
                     }
                 } else {
-                    $errorMessage = 'API Error (' . $response->status() . '). Coba lagi nanti.';
-                    Log::error('LLM API Error: ' . $response->body());
+                    $errorMessage = 'API Error ('.$response->status().'). Coba lagi nanti.';
+                    Log::error('LLM API Error: '.$response->body());
                 }
 
             } catch (\Exception $e) {
-                $errorMessage = 'Timeout / Koneksi Terputus: ' . $e->getMessage();
-                Log::error('Exception in AI Notification: ' . $e->getMessage());
+                $errorMessage = 'Timeout / Koneksi Terputus: '.$e->getMessage();
+                Log::error('Exception in AI Notification: '.$e->getMessage());
             }
         }
 
@@ -113,7 +113,7 @@ Nama Konferensi: {$data['conference_name']}
         // Ini memastikan UI tidak crash dan tetap menampilkan simulasi draf email
         return [
             'subject' => '[SIMULASI] Pengingat Tenggat Waktu Review Naskah',
-            'body' => "Yth. {$data['reviewer_name']},\n\nMohon maaf, sistem gagal memuat draf dari AI karena: {$errorMessage}\n\nIni adalah draf email statis cadangan (dummy). Kami mengingatkan bahwa tenggat waktu review untuk naskah \"{$data['paper_title']}\" adalah pada tanggal {$data['deadline_date']}.\n\nTerima kasih atas dedikasi Anda.\n\nSalam,\nPanitia {$data['conference_name']}"
+            'body' => "Yth. {$data['reviewer_name']},\n\nMohon maaf, sistem gagal memuat draf dari AI karena: {$errorMessage}\n\nIni adalah draf email statis cadangan (dummy). Kami mengingatkan bahwa tenggat waktu review untuk naskah \"{$data['paper_title']}\" adalah pada tanggal {$data['deadline_date']}.\n\nTerima kasih atas dedikasi Anda.\n\nSalam,\nPanitia {$data['conference_name']}",
         ];
     }
 }

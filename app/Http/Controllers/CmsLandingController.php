@@ -108,14 +108,14 @@ class CmsLandingController extends Controller
         ]);
 
         $file = $request->file('image');
-        if (!$file || !$file->isValid()) {
+        if (! $file || ! $file->isValid()) {
             return response()->json(['error' => 'File tidak valid atau gagal diunggah.'], 422);
         }
 
         // Generate cryptographically secure randomized filename to prevent directory traversal
         $extension = $file->getClientOriginalExtension();
-        $safeFileName = Str::random(40) . '.' . strtolower($extension);
-        $folder = 'landing/' . ($request->input('type') ?? 'general');
+        $safeFileName = Str::random(40).'.'.strtolower($extension);
+        $folder = 'landing/'.($request->input('type') ?? 'general');
 
         $path = $file->storeAs($folder, $safeFileName, 'public');
         $publicUrl = Storage::url($path);

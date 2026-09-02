@@ -269,7 +269,7 @@ class UserSeeder extends Seeder
                 ['email' => $userData['email']],
                 array_merge($userData, [
                     'password' => Hash::make('password'),
-                    'avatar' => 'https://api.dicebear.com/7.x/adventurer/svg?seed=' . urlencode($userData['name']) . '&backgroundColor=f8c0a8',
+                    'avatar' => 'https://api.dicebear.com/7.x/adventurer/svg?seed='.urlencode($userData['name']).'&backgroundColor=f8c0a8',
                 ])
             );
         }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Transaction;
 use App\Models\Expense;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 

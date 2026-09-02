@@ -4,26 +4,43 @@ import RoomTable from '../Components/RoomTable';
 import ScheduleParams from '../Components/ScheduleParams';
 import SchedulingMethodPicker from '../Components/SchedulingMethodPicker';
 import PaperAllocationTable from '../Components/PaperAllocationTable';
+import QuenzaAiSchedulingEngine from '../Components/QuenzaAiSchedulingEngine';
 import AIEngineAlerts from '../Components/AIEngineAlerts';
 import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function Schedule({ rooms = [], scheduleParams = {}, allocations = [] }) {
-    const [activeMethod, setActiveMethod] = useState('manual');
+    const isInitiallyPublished = allocations.length > 0 && allocations.every(a => a.is_locked);
+    
+    // Default method unselected (null), except if already published from DB
+    const [activeMethod, setActiveMethod] = useState(isInitiallyPublished ? 'manual' : null);
+    const [workflowStage, setWorkflowStage] = useState(isInitiallyPublished ? 'published' : 'initial');
+    const [aiApproved, setAiApproved] = useState(false);
+    
     const { post, processing } = useForm();
     const { flash } = usePage().props;
 
-    const isPublished = allocations.length > 0 && allocations.every(a => a.is_locked);
-
     const handlePublish = () => {
         if (allocations.length === 0) {
-            alert('Belum ada jadwal yang dialokasikan. Silakan jalankan Auto-Scheduling atau atur jadwal terlebih dahulu.');
+            alert('Belum ada jadwal yang dialokasikan. Silakan atur jadwal terlebih dahulu.');
             return;
         }
-        if (confirm('Apakah Anda yakin ingin mempublikasikan jadwal final? Ini akan mengunci jadwal dan status paper menjadi Published.')) {
-            post('/admin/schedule/publish', {
-                preserveScroll: true
-            });
-        }
+        post('/admin/schedule/publish', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setWorkflowStage('published');
+            }
+        });
+    };
+
+    const handleApproveAiDraft = () => {
+        setAiApproved(true);
+        // Otomatis simpan / jalankan auto-schedule di backend jika data kosong
+        post('/admin/schedule/auto', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setWorkflowStage('draft_locked');
+            }
+        });
     };
 
     return (
@@ -62,57 +79,44 @@ export default function Schedule({ rooms = [], scheduleParams = {}, allocations 
             {/* 2. Kelola Parameter Penjadwalan */}
             <ScheduleParams initialParams={scheduleParams} />
 
-            {/* 3. Pilih Metode Penjadwalan & 4. Alokasikan Paper */}
-            <div className="flex flex-col gap-6">
-                <SchedulingMethodPicker 
-                    activeMethod={activeMethod} 
-                    setActiveMethod={setActiveMethod} 
+            {/* 3. Pilih Metode Penjadwalan */}
+            <SchedulingMethodPicker 
+                activeMethod={activeMethod} 
+                setActiveMethod={(method) => {
+                    setActiveMethod(method);
+                    if (method === 'ai') {
+                        setAiApproved(false);
+                    }
+                }} 
+            />
+
+            {/* 4. Tampilan Khusus Metode Auto-Scheduling AI */}
+            {activeMethod === 'ai' && (
+                <QuenzaAiSchedulingEngine 
+                    onApproveDraft={handleApproveAiDraft}
+                    isProcessingBackend={processing}
+                    recommendations={allocations}
                 />
+            )}
 
-                {/* Show allocations if manual or generated via AI */}
-                <PaperAllocationTable allocations={allocations} />
-            </div>
+            {/* 5. Alokasikan Paper ke Sesi Ruangan (Muncul jika Manual dipilih atau jika AI Draft sudah disetujui) */}
+            {(activeMethod === 'manual' || (activeMethod === 'ai' && aiApproved)) && (
+                <PaperAllocationTable 
+                    allocations={allocations} 
+                    isPublished={isInitiallyPublished || workflowStage === 'published'}
+                    onPublish={handlePublish}
+                    processing={processing}
+                    onWorkflowChange={(stage) => setWorkflowStage(stage)}
+                />
+            )}
 
-            {/* 5. Status Terpublikasi & Tombol Aksi */}
-            <div className="quenza-card rounded-quenza-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
-                <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-quenza-md flex items-center justify-center shrink-0 ${
-                        isPublished ? 'bg-green-100 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                    }`}>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h4 className="text-quenza-medium font-quenza-bold text-quenza-text-primary">
-                            Status Publikasi Jadwal: {isPublished ? (
-                                <span className="text-emerald-700 font-quenza-bold">Terpublikasi & Terkunci</span>
-                            ) : (
-                                <span className="text-amber-700 font-quenza-bold">Draf (Belum Dipublikasikan)</span>
-                            )}
-                        </h4>
-                        <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">
-                            {isPublished 
-                                ? 'Jadwal telah terkunci dan dapat diakses oleh seluruh author dan reviewer.'
-                                : 'Presenter & peserta akan menerima notifikasi setelah jadwal final dipublikasikan.'}
-                        </p>
-                    </div>
-                </div>
-                <button 
-                    onClick={handlePublish}
-                    disabled={processing || isPublished}
-                    className={`text-quenza-small font-quenza-semibold px-6 py-2.5 rounded-quenza-md shadow-sm transition-all ${
-                        isPublished 
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
-                            : 'quenza-btn-secondary hover:shadow-md'
-                    }`}
-                >
-                    {processing ? 'Memproses...' : isPublished ? 'Jadwal Terpublikasi' : 'Publikasikan Jadwal Final'}
-                </button>
-            </div>
-
-            {/* 6. Engine AI Assistant */}
-            <AIEngineAlerts />
+            {/* 6. Engine AI Assistant — Ditampilkan jika sudah dalam status Terpublikasi */}
+            {(isInitiallyPublished || workflowStage === 'published') && (
+                <AIEngineAlerts />
+            )}
         </AdminLayout>
     );
 }
+
+
+

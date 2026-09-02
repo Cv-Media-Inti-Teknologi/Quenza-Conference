@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SmartNotificationMail;
 use App\Services\AiNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\SmartNotificationMail;
 
 class AiNotificationController extends Controller
 {
@@ -33,7 +33,7 @@ class AiNotificationController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'draft' => $draft
+            'draft' => $draft,
         ]);
     }
 
@@ -47,16 +47,16 @@ class AiNotificationController extends Controller
         // MENGIRIM EMAIL BENERAN
         // Karena di .env masih pakai MAIL_MAILER=log, ini hanya akan masuk ke laravel.log
         // Jika nanti diganti smtp, ini akan langsung terkirim ke inbox!
-        
+
         $dummyReviewerEmail = 'reviewer@quenza.id'; // Idealnya ini dari database
-        
+
         Mail::to($dummyReviewerEmail)->send(
             new SmartNotificationMail($request->subject, $request->body)
         );
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Email terkirim ke sistem!'
+            'message' => 'Email terkirim ke sistem!',
         ]);
     }
 }
