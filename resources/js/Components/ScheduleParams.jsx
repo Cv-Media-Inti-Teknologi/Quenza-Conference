@@ -19,23 +19,14 @@ export default function ScheduleParams({ initialParams = {} }) {
 
     return (
         <div className="quenza-card rounded-quenza-xl">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Kelola Parameter Penjadwalan</h3>
-                    <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Konfigurasi waktu, durasi, dan slot presentasi harian</p>
-                </div>
-                <button 
-                    onClick={handleSubmit}
-                    disabled={processing}
-                    className="quenza-btn-secondary text-quenza-small font-quenza-semibold px-4 py-2 rounded-quenza-md shadow-sm"
-                >
-                    {processing ? 'Menyimpan...' : 'Simpan Parameter'}
-                </button>
+            <div className="mb-4">
+                <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Kelola Data Ruangan</h3>
+                <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Nama, lokasi/online meet, kapasitas, & topik</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jumlah Hari</label>
+                    <label className="block text-xs text-gray-600 mb-1">Jumlah Hari</label>
                     <input 
                         type="number" 
                         min="1"
@@ -43,31 +34,31 @@ export default function ScheduleParams({ initialParams = {} }) {
                         required
                         value={data.days}
                         onChange={(e) => setData('days', parseInt(e.target.value) || 1)}
-                        className="quenza-input font-quenza-medium bg-quenza-bg"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                 </div>
                 <div>
-                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jam Mulai</label>
+                    <label className="block text-xs text-gray-600 mb-1">Jam Mulai</label>
                     <input 
                         type="time" 
                         required
                         value={data.start_time}
                         onChange={(e) => setData('start_time', e.target.value)}
-                        className="quenza-input font-quenza-medium bg-quenza-bg"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                 </div>
                 <div>
-                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jam Selesai</label>
+                    <label className="block text-xs text-gray-600 mb-1">Jam Selesai</label>
                     <input 
                         type="time" 
                         required
                         value={data.end_time}
                         onChange={(e) => setData('end_time', e.target.value)}
-                        className="quenza-input font-quenza-medium bg-quenza-bg"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                 </div>
                 <div>
-                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Jeda Istirahat (menit)</label>
+                    <label className="block text-xs text-gray-600 mb-1">Jeda istirahat (menit)</label>
                     <input 
                         type="number" 
                         min="0"
@@ -75,11 +66,11 @@ export default function ScheduleParams({ initialParams = {} }) {
                         required
                         value={data.break_duration}
                         onChange={(e) => setData('break_duration', parseInt(e.target.value) || 0)}
-                        className="quenza-input font-quenza-medium bg-quenza-bg"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
                 </div>
-                <div>
-                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5 uppercase tracking-wider">Durasi / Presenter (menit)</label>
+                <div className="md:col-span-2">
+                    <label className="block text-xs text-gray-600 mb-1">Durasi / Presenter (menit)</label>
                     <input 
                         type="number" 
                         min="5"
@@ -87,8 +78,17 @@ export default function ScheduleParams({ initialParams = {} }) {
                         required
                         value={data.presenter_duration}
                         onChange={(e) => setData('presenter_duration', parseInt(e.target.value) || 1)}
-                        className="quenza-input font-quenza-medium bg-quenza-bg"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     />
+                </div>
+                <div className="md:col-span-2 flex justify-end pt-2">
+                    <button 
+                        type="submit"
+                        disabled={processing}
+                        className="bg-[#0b603a] text-white text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-emerald-800 transition"
+                    >
+                        {processing ? 'Menyimpan...' : 'Simpan Parameter'}
+                    </button>
                 </div>
             </form>
         </div>
