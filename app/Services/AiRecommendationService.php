@@ -69,9 +69,9 @@ Daftar Reviewer Tersedia:
         if (!empty($apiKey)) {
             try {
             $response = Http::withoutVerifying()
+                ->retry(3, 1000)
                 ->withToken($apiKey)
                 ->withHeaders([
-                    'User-Agent' => 'Quenza-App/1.0',
                     'Accept' => 'application/json',
                 ])
                 ->timeout(120)
@@ -80,11 +80,12 @@ Daftar Reviewer Tersedia:
                     'stream' => false,
                     'messages' => [
                         [
-                            'role' => 'system',
+                            'role' => 'user',
                             'content' => $systemPrompt
                         ],
                     ],
-                    'temperature' => 0.2
+                    'temperature' => 0.2,
+                    'max_tokens' => 300
                 ]);
 
             if ($response->successful()) {
@@ -97,8 +98,14 @@ Daftar Reviewer Tersedia:
                 // Parse JSON
                 $data = json_decode($content, true);
                 
-                if (isset($data['recommendations']) && is_array($data['recommendations'])) {
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $errorMessage = 'Gagal membaca balasan AI. (Error: ' . json_last_error_msg() . '). Kemungkinan model berhalusinasi.';
+                    Log::error('JSON Decode Error: ' . json_last_error_msg() . ' | Content: ' . $content);
+                } elseif (isset($data['recommendations']) && is_array($data['recommendations'])) {
                     return $data['recommendations'];
+                } else {
+                    $errorMessage = 'Format JSON AI salah (Tidak ada kunci "recommendations").';
+                    Log::error('Invalid AI Response Format. Content: ' . $content);
                 }
             } else {
                 $errorMessage = 'API Error (' . $response->status() . '). Coba lagi nanti.';
