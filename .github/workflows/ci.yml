@@ -102,13 +102,14 @@ jobs:
         run: php artisan migrate --force --ansi
 
       # =========================================================================
-      # 7. RUN AUTOMATED TESTS (PHPUnit / Pest)
+      # 7. BUILD FRONTEND ASSETS (Vite & React)
+      # =========================================================================
+      - name: Compile Frontend Assets (Vite Build)
+        run: npm run build
+
+      # =========================================================================
+      # 8. RUN AUTOMATED TESTS (PHPUnit / Pest)
       # =========================================================================
       - name: Execute Automated Tests
         run: php artisan test --ansi
 
-      # =========================================================================
-      # 8. BUILD FRONTEND ASSETS (Vite & React)
-      # =========================================================================
-      - name: Compile Frontend Assets (Vite Build)
-        run: npm run build
