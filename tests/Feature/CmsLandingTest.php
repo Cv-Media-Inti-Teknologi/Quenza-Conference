@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\LandingContent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -183,7 +184,7 @@ class CmsLandingTest extends TestCase
         $response = $this->actingAs($this->superAdmin)->post('/admin/cms/update', $payload);
         $response->assertSessionHas('success');
 
-        $content = \App\Models\LandingContent::first();
+        $content = LandingContent::first();
         $this->assertEquals('Secure Conference 2026', $content->conference_title);
         $this->assertEquals('Bold Theme', $content->conference_theme);
         $this->assertEquals('Konferensi aman', $content->description);
