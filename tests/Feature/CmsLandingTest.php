@@ -144,4 +144,78 @@ class CmsLandingTest extends TestCase
 
         $response->assertStatus(422);
     }
+
+    public function test_cms_input_is_properly_sanitized_against_xss(): void
+    {
+        $payload = [
+            'conference_title' => '<script>alert("xss")</script>Secure Conference 2026',
+            'conference_theme' => '<b>Bold Theme</b>',
+            'description' => '<img src=x onerror=alert(1)>Konferensi aman',
+            'date_range' => '10-12 Des 2026',
+            'edition' => 'Edisi ke-1',
+            'location' => 'Jakarta',
+            'important_dates' => [
+                [
+                    'id' => 'dt-1',
+                    'keterangan' => '<script>steal()</script>Registrasi Ditutup',
+                    'tanggal' => '1 Des 2026',
+                    'status' => 'upcoming',
+                ],
+            ],
+            'sponsors' => [
+                [
+                    'id' => 'sp-1',
+                    'name' => '<script>xss()</script>PT Sponsor Bersih',
+                    'tier' => 'Platinum Sponsor',
+                    'logo' => 'https://example.com/logo.png',
+                    'website_url' => 'https://sponsorbersih.id',
+                    'description' => '<iframe src="bad.com"></iframe>Deskripsi mitra resmi',
+                ],
+            ],
+            'paper_registration' => [
+                'presentation_type' => 'Speech',
+                'paper_title' => '<script>hack()</script>Machine Learning Security',
+                'file_url' => '/storage/landing/paper/paper.pdf',
+                'file_name' => '../../unsafe<script>.pdf',
+            ],
+        ];
+
+        $response = $this->actingAs($this->superAdmin)->post('/admin/cms/update', $payload);
+        $response->assertSessionHas('success');
+
+        $content = \App\Models\LandingContent::first();
+        $this->assertEquals('Secure Conference 2026', $content->conference_title);
+        $this->assertEquals('Bold Theme', $content->conference_theme);
+        $this->assertEquals('Konferensi aman', $content->description);
+
+        $this->assertEquals('Registrasi Ditutup', $content->important_dates[0]['keterangan']);
+        $this->assertEquals('PT Sponsor Bersih', $content->sponsors[0]['name']);
+        $this->assertEquals('Deskripsi mitra resmi', $content->sponsors[0]['description']);
+
+        $this->assertEquals('Machine Learning Security', $content->paper_registration['paper_title']);
+        $this->assertEquals('unsafe.pdf', $content->paper_registration['file_name']);
+    }
+
+    public function test_super_admin_can_upload_paper_pdf_and_rejects_non_pdf(): void
+    {
+        Storage::fake('public');
+
+        // Valid PDF upload
+        $pdfFile = UploadedFile::fake()->create('manuscript.pdf', 100, 'application/pdf');
+        $response = $this->actingAs($this->superAdmin)->postJson('/admin/cms/upload', [
+            'image' => $pdfFile,
+            'type' => 'paper',
+        ]);
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'url', 'filename', 'original_name']);
+        $this->assertEquals('manuscript.pdf', $response->json('original_name'));
+
+        // Invalid file format for paper (e.g. .exe or image)
+        $exeFile = UploadedFile::fake()->create('malicious.exe', 100, 'application/octet-stream');
+        $failResponse = $this->actingAs($this->superAdmin)->postJson('/admin/cms/upload', [
+            'image' => $exeFile,
+            'type' => 'paper',
+        ]);
+        $failResponse->assertStatus(422);
+    }
 }

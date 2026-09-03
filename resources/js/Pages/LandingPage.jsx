@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { sanitizeUrl } from '../Utils/sanitize';
 
 export default function LandingPage({ landingData, auth }) {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -371,11 +372,11 @@ export default function LandingPage({ landingData, auth }) {
                                             <div className="bg-quenza-bg p-6 rounded-quenza-xl border border-gray-200 shadow-2xs hover:border-quenza-secondary transition-all">
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                                     <h3 className="text-quenza-large font-quenza-bold text-gray-900">
-                                                        {dateItem.title}
+                                                        {dateItem.keterangan || dateItem.title}
                                                     </h3>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-quenza-medium font-quenza-bold text-quenza-secondary bg-green-50 px-3 py-1 rounded-quenza-md border border-green-200/60">
-                                                            {dateItem.date_info}
+                                                            {dateItem.tanggal || dateItem.date_info}
                                                         </span>
                                                         <span className={`px-2.5 py-0.5 rounded-full text-quenza-small ${statusBadge.bg}`}>
                                                             {statusBadge.label}
@@ -554,26 +555,31 @@ export default function LandingPage({ landingData, auth }) {
                                 Didukung Oleh Sponsor & Mitra Akademik
                             </span>
                             <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 max-w-5xl mx-auto">
-                                {sponsors.map((sp, idx) => (
-                                    <a
-                                        key={sp.id || idx}
-                                        href={sp.website_url || '#'}
-                                        target={sp.website_url ? '_blank' : '_self'}
-                                        rel="noopener noreferrer"
-                                        className="group flex flex-col items-center gap-2 grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-300 transform hover:-translate-y-0.5"
-                                    >
-                                        <div className="h-14 w-32 flex items-center justify-center p-1">
-                                            <img
-                                                src={sp.logo}
-                                                alt={sp.name}
-                                                className="max-h-full max-w-full object-contain"
-                                            />
-                                        </div>
-                                        <span className="text-quenza-small font-quenza-medium text-gray-600 group-hover:text-quenza-secondary">
-                                            {sp.name}
-                                        </span>
-                                    </a>
-                                ))}
+                                {sponsors.map((sp, idx) => {
+                                    const safeUrl = sanitizeUrl(sp.website_url || sp.redirect_link);
+                                    const isExternal = safeUrl.startsWith('http://') || safeUrl.startsWith('https://');
+                                    return (
+                                        <a
+                                            key={sp.id || idx}
+                                            href={safeUrl}
+                                            target={isExternal ? '_blank' : '_self'}
+                                            rel="noopener noreferrer"
+                                            title={sp.description || sp.keterangan || sp.name}
+                                            className="group flex flex-col items-center gap-2 grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-300 transform hover:-translate-y-0.5"
+                                        >
+                                            <div className="h-14 w-32 flex items-center justify-center p-1">
+                                                <img
+                                                    src={sanitizeUrl(sp.logo)}
+                                                    alt={sp.name}
+                                                    className="max-h-full max-w-full object-contain"
+                                                />
+                                            </div>
+                                            <span className="text-quenza-small font-quenza-medium text-gray-600 group-hover:text-quenza-secondary">
+                                                {sp.name}
+                                            </span>
+                                        </a>
+                                    );
+                                })}
                             </div>
                         </div>
                     </section>

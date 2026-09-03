@@ -24,6 +24,7 @@ class LandingContent extends Model
         'speakers',
         'important_dates',
         'sponsors',
+        'paper_registration',
     ];
 
     /**
@@ -36,6 +37,7 @@ class LandingContent extends Model
         'speakers' => 'array',
         'important_dates' => 'array',
         'sponsors' => 'array',
+        'paper_registration' => 'array',
     ];
 
     /**
@@ -94,29 +96,37 @@ class LandingContent extends Model
                 'important_dates' => [
                     [
                         'id' => 'date-1',
-                        'title' => 'Call for Papers & Abstract Submission',
-                        'date_info' => '15 Mei 2026',
-                        'description' => 'Batas akhir penerimaan abstrak penelitian dari author.',
+                        'title' => 'Registration Open',
+                        'keterangan' => 'Registration Open',
+                        'date_info' => '1 Agu 2026',
+                        'tanggal' => '1 Agu 2026',
+                        'description' => 'Pembukaan registrasi dan pendaftaran konferensi.',
                         'status' => 'completed',
                     ],
                     [
                         'id' => 'date-2',
-                        'title' => 'Review Naskah & Notifikasi Penerimaan',
-                        'date_info' => '15 Agustus 2026',
-                        'description' => 'Pengumuman hasil double-blind review bagi author.',
+                        'title' => 'Call for Abstract',
+                        'keterangan' => 'Call for Abstract',
+                        'date_info' => '1 Sep 2026',
+                        'tanggal' => '1 Sep 2026',
+                        'description' => 'Batas akhir penerimaan abstrak penelitian dari author.',
                         'status' => 'active',
                     ],
                     [
                         'id' => 'date-3',
-                        'title' => 'Camera Ready & Pembayaran Registrasi',
-                        'date_info' => '1 September 2026',
-                        'description' => 'Batas unggah final paper dan penyelesaian biaya pendaftaran.',
+                        'title' => 'Review Naskah & Notifikasi',
+                        'keterangan' => 'Review Naskah & Notifikasi',
+                        'date_info' => '15 Sep 2026',
+                        'tanggal' => '15 Sep 2026',
+                        'description' => 'Pengumuman hasil peer-review.',
                         'status' => 'upcoming',
                     ],
                     [
                         'id' => 'date-4',
-                        'title' => 'Pelaksanaan Konferensi (ICIT 2026)',
-                        'date_info' => '14–15 Oktober 2026',
+                        'title' => 'Pelaksanaan Konferensi',
+                        'keterangan' => 'Pelaksanaan Konferensi',
+                        'date_info' => '14–15 Okt 2026',
+                        'tanggal' => '14–15 Okt 2026',
                         'description' => 'Sesi Plenary, Paralel Session (Hybrid), & Gala Dinner.',
                         'status' => 'upcoming',
                     ],
@@ -124,27 +134,46 @@ class LandingContent extends Model
                 'sponsors' => [
                     [
                         'id' => 'sponsor-1',
+                        'name' => 'Telkom Indonesia',
+                        'tier' => 'Platinum Sponsor',
+                        'logo' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Telkom_Indonesia_2013.svg/320px-Telkom_Indonesia_2013.svg.png',
+                        'website_url' => 'https://www.telkom.co.id/sites/profil-telkom/id_ID/page/profil-dan-riwayat-singkat-22',
+                        'description' => 'Mendukung infrastruktur jaringan konferensi.',
+                    ],
+                    [
+                        'id' => 'sponsor-2',
                         'name' => 'Google Cloud',
                         'tier' => 'Platinum Sponsor',
                         'logo' => 'https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg',
                         'website_url' => 'https://cloud.google.com',
+                        'description' => 'Penyedia komputasi awan dan infrastruktur AI terkemuka.',
                     ],
                     [
-                        'id' => 'sponsor-2',
+                        'id' => 'sponsor-3',
                         'name' => 'IEEE Indonesia Section',
                         'tier' => 'Gold Sponsor',
                         'logo' => 'https://upload.wikimedia.org/wikipedia/commons/2/21/IEEE_logo.svg',
                         'website_url' => 'https://ieee.org',
-                    ],
-                    [
-                        'id' => 'sponsor-3',
-                        'name' => 'Kompas Media',
-                        'tier' => 'Media Partner',
-                        'logo' => 'https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg',
-                        'website_url' => 'https://kompas.com',
+                        'description' => 'Mitra publikasi teknis dan standar konferensi internasional.',
                     ],
                 ],
+                'paper_registration' => [
+                    'presentation_type' => 'Speech',
+                    'paper_title' => 'International Conference on Information Technology 2026',
+                    'file_url' => null,
+                    'file_name' => null,
+                ],
             ]);
+        }
+
+        if ($content->paper_registration === null) {
+            $content->paper_registration = [
+                'presentation_type' => 'Speech',
+                'paper_title' => $content->conference_title ?: 'International Conference on Information Technology 2026',
+                'file_url' => null,
+                'file_name' => null,
+            ];
+            $content->save();
         }
 
         return $content;
