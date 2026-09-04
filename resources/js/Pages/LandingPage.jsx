@@ -2,13 +2,89 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { sanitizeUrl } from '../Utils/sanitize';
 
-export default function LandingPage({ landingData, auth }) {
+export default function LandingPage({ landingData, auth, ticketPricing = [] }) {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const slides = Array.isArray(landingData?.slider_images) ? landingData.slider_images : [];
     const speakers = Array.isArray(landingData?.speakers) ? landingData.speakers : [];
     const dates = Array.isArray(landingData?.important_dates) ? landingData.important_dates : [];
     const sponsors = Array.isArray(landingData?.sponsors) ? landingData.sponsors : [];
+
+    // Use dynamic pricing from ticket_pricing (mirrors /pricing page)
+    const pricingMap = {};
+    ticketPricing.forEach(p => {
+        pricingMap[p.category] = {
+            regular_price: p.regular_price || 0,
+            late_price: p.late_price || 0,
+        };
+    });
+
+    const pricingPlans = [
+        {
+            title: 'Participant',
+            subtitle: 'Offline',
+            description: 'Untuk peserta yang menghadiri konferensi secara langsung.',
+            category: 'participant',
+            prices: [
+                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
+                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
+                { label: 'International', price: 20, isUSD: true },
+            ],
+            features: ['Akses penuh selama konferensi', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
+            primary: false,
+        },
+        {
+            title: 'Presenter',
+            subtitle: 'Pemakalah',
+            description: 'Untuk peserta yang mempresentasikan makalah.',
+            category: 'author',
+            prices: [
+                { label: 'Dosen/Alumni', price: pricingMap['president']?.regular_price || 5000000 },
+                { label: 'Mahasiswa', price: pricingMap['author']?.regular_price || 1500000 },
+                { label: 'International', price: 40, isUSD: true },
+            ],
+            features: ['Akses penuh selama konferensi', 'Kesempatan mempresentasikan makalah', 'Publikasi dalam prosiding', 'Sertifikat sebagai pemakalah', 'Akses ke seluruh sesi dan workshop'],
+            primary: true,
+        },
+        {
+            title: 'Participant',
+            subtitle: 'Online',
+            description: 'Untuk peserta yang mengikuti konferensi secara virtual.',
+            category: 'participant',
+            prices: [
+                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
+                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
+                { label: 'International', price: 10, isUSD: true },
+            ],
+            features: ['Akses penuh konferensi secara daring', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
+            primary: false,
+        },
+    ];
+
+    const formatCurrency = (amount, isUSD = false) => {
+        if (isUSD) return `$ ${amount}`;
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
+    };
+
+    const handleBuyTicket = (category) => {
+        if (!auth?.user) {
+            router.visit('/login');
+            return;
+        }
+
+        router.post('/api/payment/initiate', {
+            type: 'registration',
+            payment_method: 'virtual_account',
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('Pembayaran berhasil diinisiasi! Silakan selesaikan pembayaran melalui metode yang dipilih.');
+            },
+            onError: () => {
+                alert('Gagal memulai pembayaran');
+            },
+        });
+    };
 
     const nextSlide = () => {
         if (slides.length > 0) {
@@ -413,136 +489,58 @@ export default function LandingPage({ landingData, auth }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                            {/* Card 1 */}
-                            <div className="bg-white rounded-quenza-2xl border border-gray-200 p-8 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
-                                <div>
-                                    <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
-                                        Participant
-                                    </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Offline</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang menghadiri konferensi secara langsung.</p>
-                                    <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 400.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Umum</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 300.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 20</span>
-                                        <span className="text-quenza-small text-gray-500"> / International</span>
-                                    </div>
-                                    <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses penuh selama konferensi
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses ke seluruh sesi dan workshop
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Sertifikat peserta
-                                        </li>
-                                    </ul>
-                                </div>
-                                <Link href="/login" className="quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center">
-                                    Beli Tiket Peserta
-                                </Link>
-                            </div>
+                            {pricingPlans.map((plan) => (
+                                <div
+                                    key={plan.title + plan.subtitle}
+                                    className={`bg-white rounded-quenza-2xl border ${plan.primary ? 'border-2 border-quenza-secondary shadow-xl scale-[1.02]' : 'border-gray-200 shadow-xs'} p-8 flex flex-col justify-between hover:shadow-md transition-all relative`}
+                                >
+                                    {plan.primary && (
+                                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-quenza-secondary text-white px-4 py-1 rounded-full text-quenza-small font-quenza-bold tracking-wider uppercase">
+                                            Rekomendasi
+                                        </div>
+                                    )}
 
-                            {/* Card 2 - Highlighted */}
-                            <div className="bg-white rounded-quenza-2xl border-2 border-quenza-secondary p-8 shadow-xl flex flex-col justify-between relative scale-105">
-                                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-quenza-secondary text-white px-4 py-1 rounded-full text-quenza-small font-quenza-bold tracking-wider uppercase">
-                                    Rekomendasi
+                                    <div>
+                                        <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
+                                            {plan.title}
+                                        </span>
+                                        <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">
+                                            {plan.subtitle}
+                                        </h3>
+                                        <p className="text-quenza-small text-gray-500 mt-1">
+                                            {plan.description}
+                                        </p>
+                                        {plan.prices.map((price, idx) => (
+                                            <div key={idx} className="my-4">
+                                                <span className={`font-quenza-bold text-gray-900 ${idx === 0 ? 'text-quenza-4xlarge' : idx === 1 ? 'text-quenza-3xlarge' : 'text-quenza-xlarge'}`}>
+                                                    {formatCurrency(price.price, price.isUSD)}
+                                                </span>
+                                                <span className="text-quenza-small text-gray-500"> / {price.label}</span>
+                                            </div>
+                                        ))}
+                                        <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
+                                            {plan.features.map((feature) => (
+                                                <li key={feature} className="flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                    {feature}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBuyTicket(plan.category)}
+                                        className={plan.primary
+                                            ? 'quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white'
+                                            : 'quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center'
+                                        }
+                                    >
+                                        {plan.title === 'Presenter' ? 'Daftar Sebagai Author' : 'Beli Tiket Peserta'}
+                                    </button>
                                 </div>
-                                <div>
-                                    <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
-                                        Presenter
-                                    </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Pemakalah</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang mempresentasikan makalah.</p>
-                                    <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 350.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Dosen atau Alumni + Prosiding</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 200.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 40</span>
-                                        <span className="text-quenza-small text-gray-500"> / International + Publication</span>
-                                    </div>
-                                    <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses penuh selama konferensi
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Kesempatan mempresentasikan makalah
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Publikasi dalam prosiding
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Sertifikat sebagai pemakalah
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses ke seluruh sesi dan workshop
-                                        </li>
-                                    </ul>
-                                </div>
-                                <Link href="/login" className="quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white">
-                                    Daftar Sebagai Author
-                                </Link>
-                            </div>
-
-                            {/* Card 3 */}
-                            <div className="bg-white rounded-quenza-2xl border border-gray-200 p-8 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
-                                <div>
-                                    <span className="text-quenza-small font-quenza-bold text-quenza-secondary uppercase tracking-wider">
-                                        Participant
-                                    </span>
-                                    <h3 className="text-quenza-2xlarge font-quenza-bold text-gray-900 mt-1">Online</h3>
-                                    <p className="text-quenza-small text-gray-500 mt-1">Untuk peserta yang mengikuti konferensi secara virtual.</p>
-                                    <div className="my-6">
-                                        <span className="text-quenza-4xlarge font-quenza-bold text-gray-900">Rp 150.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Umum</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-3xlarge font-quenza-bold text-gray-900">Rp 100.000</span>
-                                        <span className="text-quenza-small text-gray-500"> / Mahasiswa</span>
-                                    </div>
-                                    <div className="my-6">
-                                        <span className="text-quenza-xlarge font-quenza-bold text-gray-900">$ 10</span>
-                                        <span className="text-quenza-small text-gray-500"> / International</span>
-                                    </div>
-                                    <ul className="space-y-3 text-quenza-medium text-gray-600 border-t border-gray-100 pt-6">
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses penuh konferensi secara daring
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Akses ke seluruh sesi dan workshop
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <svg className="w-5 h-5 text-quenza-primary shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Sertifikat peserta
-                                        </li>
-                                    </ul>
-                                </div>
-                                <Link href="/login" className="quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center">
-                                    Beli Tiket Peserta
-                                </Link>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
