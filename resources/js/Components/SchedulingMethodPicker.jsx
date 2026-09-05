@@ -1,53 +1,34 @@
 import React from 'react';
 
 export default function SchedulingMethodPicker({ activeMethod, setActiveMethod }) {
+    const isAiActive = activeMethod === 'ai';
+
     return (
-        <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h2 className="font-bold text-lg text-gray-900 mb-1">Pilih Metode Penjadwalan Paper</h2>
-            <p className="text-xs text-gray-500 mb-4">Alokasikan judul paper accepted & author ke sesi sesuai tema ruangan</p>
+        <section className="bg-white rounded-2xl p-6 sm:p-8 shadow-xs border border-gray-100">
+            <h2 className="font-bold text-lg text-gray-900 tracking-tight">Pilih Metode Penjadwalan Paper</h2>
+            <p className="text-xs text-gray-400 mt-0.5 mb-6">
+                Alokasikan judul paper accepted &amp; author ke sesi sesuai tema ruangan
+            </p>
 
-            <div className="space-y-3">
-                {/* Option: Manual */}
-                <div 
-                    onClick={() => setActiveMethod('manual')}
-                    id="method-manual"
-                    className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                        activeMethod === 'manual' 
-                            ? 'border-emerald-500 bg-emerald-50/50 shadow-xs' 
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                >
-                    <div className="font-bold text-sm text-gray-900 flex items-center space-x-2">
-                        <span>📋</span> 
-                        <span className={activeMethod === 'manual' ? 'text-emerald-950 font-semibold' : 'text-gray-900'}>Manual</span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                        Admin mengalokasikan sendiri judul paper ke sesi & ruangan, lalu divalidasi sistem secara real-time.
-                    </p>
+            <div 
+                onClick={() => setActiveMethod && setActiveMethod(isAiActive ? null : 'ai')}
+                className={`border rounded-xl p-4 sm:p-5 transition-all cursor-pointer ${
+                    isAiActive
+                        ? 'bg-[#f4f2ff] border-purple-300 shadow-xs'
+                        : 'bg-[#f0f8f4] border-emerald-100/60 hover:bg-[#ebf5ef]'
+                }`}
+            >
+                <div className="font-bold text-xs sm:text-sm text-gray-900 flex items-center gap-2">
+                    <span className="text-base">🪄</span>
+                    <span>Auto-Scheduling AI</span>
                 </div>
-
-                {/* Option: Auto-Scheduling AI */}
-                <div 
-                    onClick={() => setActiveMethod('ai')}
-                    id="method-ai"
-                    className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                        activeMethod === 'ai' 
-                            ? 'border-purple-300 bg-[#F5F3FF] shadow-xs' 
-                            : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                >
-                    <div className="font-bold text-sm text-gray-900 flex items-center space-x-2">
-                        <span>🪄</span> 
-                        <span className={activeMethod === 'ai' ? 'text-purple-950 font-semibold' : 'text-gray-900'}>
-                            Auto-Scheduling AI
-                        </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                        Quenza AI membaca database paper & ruangan, lalu menyusun draft jadwal bebas bentrok otomatis.
-                    </p>
-                </div>
+                <p className="text-xs text-gray-500 mt-1 pl-6">
+                    Quenza AI membaca database paper &amp; ruangan, lalu menyusun draft jadwal bebas bentrok otomatis.
+                </p>
             </div>
         </section>
     );
 }
+
+
 

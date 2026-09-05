@@ -56,8 +56,12 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     // Event & Scheduling routes
     Route::get('/schedule', [ScheduleController::class, 'index'])->name('admin.schedule');
     Route::post('/schedule/params', [ScheduleController::class, 'updateScheduleParams'])->name('admin.schedule.params');
+    Route::post('/schedule/room/{room}/params', [ScheduleController::class, 'updateRoomParams'])->name('admin.schedule.room.params');
+    Route::delete('/schedule/room/{room}/params', [ScheduleController::class, 'destroyRoomParams'])->name('admin.schedule.room.params.destroy');
     Route::post('/schedule/auto', [ScheduleController::class, 'autoSchedule'])->name('admin.schedule.auto');
     Route::post('/schedule/publish', [ScheduleController::class, 'publishSchedule'])->name('admin.schedule.publish');
+    Route::get('/schedule/export-pdf', [ScheduleController::class, 'exportPdf'])->name('admin.schedule.export-pdf');
+    Route::get('/api/schedule/sessions', [ScheduleController::class, 'getSessions'])->name('admin.schedule.sessions');
 
     // Room CUD routes
     Route::post('/schedule/room', [RoomController::class, 'store'])->name('admin.schedule.room.store');
@@ -131,3 +135,4 @@ Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function
 
 Route::post('/admin/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
 Route::post('/api/ai/check-similarity', [AiSimilarityController::class, 'checkSimilarity']);
+Route::middleware('auth')->post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
