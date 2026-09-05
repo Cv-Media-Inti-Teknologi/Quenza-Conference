@@ -4,6 +4,8 @@ import { useForm, router } from '@inertiajs/react';
 export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectRoom = null }) {
     const [showModal, setShowModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
+    const [deletingRoom, setDeletingRoom] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -46,20 +48,44 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
         reset();
     };
 
-    const handleDelete = (id, e) => {
+    const openDeleteModal = (room, e) => {
         if (e) e.stopPropagation();
-        if (confirm('Apakah Anda yakin ingin menghapus ruangan ini? Semua jadwal terkait akan terhapus.')) {
-            router.delete(`/admin/schedule/room/${id}`, {
-                preserveScroll: true
-            });
-        }
+        setDeletingRoom(room);
     };
+
+    const closeDeleteModal = () => {
+        if (isDeleting) return;
+        setDeletingRoom(null);
+    };
+
+    const confirmDelete = () => {
+        if (!deletingRoom) return;
+        router.delete(`/admin/schedule/room/${deletingRoom.id}`, {
+            preserveScroll: true,
+            preserveState: true,
+            onStart: () => setIsDeleting(true),
+            onFinish: () => {
+                setIsDeleting(false);
+                setDeletingRoom(null);
+            }
+        });
+    };
+
+    const isFormValid = Boolean(
+        data.name && String(data.name).trim() !== '' &&
+        data.location && String(data.location).trim() !== '' &&
+        data.capacity !== '' && data.capacity !== null && data.capacity !== undefined &&
+        data.topic && String(data.topic).trim() !== ''
+    );
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!isFormValid) return;
+
         if (editingRoom) {
             put(`/admin/schedule/room/${editingRoom.id}`, {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
                     closeModal();
                 }
@@ -67,6 +93,7 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
         } else {
             post('/admin/schedule/room', {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
                     closeModal();
                 }
@@ -151,8 +178,8 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                                                 </button>
                                                 <button 
                                                     type="button"
-                                                    onClick={(e) => handleDelete(room.id, e)}
-                                                    className="text-[#dc2626] hover:text-[#b91c1c] p-1 rounded transition-colors"
+                                                    onClick={(e) => openDeleteModal(room, e)}
+                                                    className="text-[#dc2626] hover:text-[#b91c1c] p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                                                     title="Hapus Ruangan"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,14 +198,16 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
 
             {/* Modal Tambah / Edit Ruangan */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-white rounded-quenza-xl p-6 w-full max-w-md shadow-quenza-modal border border-gray-100">
                         <h4 className="text-quenza-large font-quenza-bold text-quenza-text-primary mb-4">
                             {editingRoom ? 'Edit Ruangan' : 'Tambah Ruangan Baru'}
                         </h4>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} noValidate className="space-y-4">
                             <div>
-                                <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">Nama Ruangan</label>
+                                <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">
+                                    Nama Ruangan <span className="text-red-500 font-bold ml-0.5">*</span>
+                                </label>
                                 <input 
                                     type="text" 
                                     required
@@ -190,7 +219,9 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                                 {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
                             </div>
                             <div>
-                                <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">Lokasi</label>
+                                <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">
+                                    Lokasi <span className="text-red-500 font-bold ml-0.5">*</span>
+                                </label>
                                 <input 
                                     type="text" 
                                     required
@@ -203,10 +234,13 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">Kapasitas</label>
+                                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">
+                                        Kapasitas <span className="text-red-500 font-bold ml-0.5">*</span>
+                                    </label>
                                     <input 
                                         type="number" 
                                         min="1"
+                                        step="1"
                                         required
                                         value={data.capacity}
                                         onChange={(e) => setData('capacity', e.target.value)}
@@ -216,7 +250,9 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                                     {errors.capacity && <p className="text-red-600 text-xs mt-1">{errors.capacity}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">Topik</label>
+                                    <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">
+                                        Topik <span className="text-red-500 font-bold ml-0.5">*</span>
+                                    </label>
                                     <input 
                                         type="text" 
                                         required
@@ -232,19 +268,103 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                                 <button 
                                     type="button"
                                     onClick={closeModal}
-                                    className="quenza-btn-outline text-quenza-small font-quenza-medium px-4 py-2"
+                                    className="quenza-btn-outline text-quenza-small font-quenza-medium px-4 py-2 cursor-pointer"
                                 >
                                     Batal
                                 </button>
                                 <button 
                                     type="submit"
-                                    disabled={processing}
-                                    className="quenza-btn-secondary text-quenza-small font-quenza-semibold px-4 py-2"
+                                    disabled={!isFormValid || processing}
+                                    className={`quenza-btn-secondary text-quenza-small font-quenza-semibold px-4 py-2 ${
+                                        !isFormValid || processing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                    }`}
                                 >
                                     {processing ? 'Menyimpan...' : (editingRoom ? 'Perbarui Ruangan' : 'Simpan Ruangan')}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Konfirmasi Hapus Ruangan */}
+            {deletingRoom && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-fade-in"
+                    onClick={closeDeleteModal}
+                >
+                    <div 
+                        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 space-y-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3.5">
+                            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center text-xl shrink-0 border border-red-100">
+                                🗑️
+                            </div>
+                            <div>
+                                <h4 className="text-base font-bold text-gray-900 tracking-tight">
+                                    Hapus Ruangan?
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    Tindakan ini tidak dapat dibatalkan.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Ringkasan Ruangan yang Dihapus */}
+                        <div className="bg-gray-50 rounded-xl p-3.5 border border-gray-100 space-y-1.5 text-xs">
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 font-medium">Nama Ruangan:</span>
+                                <span className="font-bold text-gray-900">{deletingRoom.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 font-medium">Lokasi:</span>
+                                <span className="font-semibold text-gray-800">{deletingRoom.location}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 font-medium">Topik:</span>
+                                <span className="font-semibold text-gray-800">{deletingRoom.topic}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-400 font-medium">Kapasitas:</span>
+                                <span className="font-semibold text-gray-800">{formatCapacity(deletingRoom.capacity, deletingRoom.location)}</span>
+                            </div>
+                        </div>
+
+                        {/* Peringatan Bahaya */}
+                        <div className="bg-red-50/70 border border-red-200 rounded-xl p-3 text-red-700 text-xs flex items-start gap-2">
+                            <span className="text-sm shrink-0">⚠️</span>
+                            <span>
+                                Menghapus ruangan ini akan otomatis menghapus konfigurasi acara dan seluruh sesi presentasi paper yang dialokasikan di dalamnya.
+                            </span>
+                        </div>
+
+                        {/* Tombol Aksi */}
+                        <div className="flex justify-end items-center gap-2.5 pt-2 border-t border-gray-100">
+                            <button 
+                                type="button"
+                                onClick={closeDeleteModal}
+                                disabled={isDeleting}
+                                className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-lg transition cursor-pointer disabled:opacity-50"
+                            >
+                                Batal
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                className="bg-[#dc2626] hover:bg-[#b91c1c] text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <span className="animate-spin text-xs">⏳</span>
+                                        <span>Menghapus...</span>
+                                    </>
+                                ) : (
+                                    <span>Ya, Hapus Ruangan</span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

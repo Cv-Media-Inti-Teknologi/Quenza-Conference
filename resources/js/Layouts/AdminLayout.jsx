@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../Components/Sidebar';
 import Topbar from '../Components/Topbar';
+import ToastStack from '../Components/ToastStack';
 
 export default function AdminLayout({ children, title = 'Dashboard Utama', subtitle = 'Ringkasan operasional & keuangan real-time' }) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -54,6 +55,10 @@ export default function AdminLayout({ children, title = 'Dashboard Utama', subti
                     Quenza Conference System - Dashboard Admin
                 </footer>
             </div>
+
+            {/* Stacked Flash & Toast Alerts at Bottom-Right */}
+            <ToastStack />
         </div>
     );
 }
+
