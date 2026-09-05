@@ -19,9 +19,11 @@ class LandingController extends Controller
     {
         $landingData = LandingContent::current();
         $user = Auth::user();
+        $ticketPricing = TicketPricing::all();
 
         return Inertia::render('LandingPage', [
             'landingData' => $landingData,
+            'ticketPricing' => $ticketPricing,
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,

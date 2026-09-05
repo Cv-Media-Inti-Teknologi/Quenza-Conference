@@ -6,6 +6,7 @@ import ImageSliderTab from '../../Components/CMS/ImageSliderTab';
 import SpeakersTab from '../../Components/CMS/SpeakersTab';
 import LinimasaTab from '../../Components/CMS/LinimasaTab';
 import SponsorTab from '../../Components/CMS/SponsorTab';
+import PaperRegistrationTab from '../../Components/CMS/PaperRegistrationTab';
 import ConfirmationModal from '../../Components/CMS/ConfirmationModal';
 import PreviewLandingModal from '../../Components/CMS/PreviewLandingModal';
 
@@ -78,6 +79,12 @@ export default function CmsLandingPage({ landingData }) {
         speakers: landingData?.speakers || [],
         important_dates: landingData?.important_dates || [],
         sponsors: landingData?.sponsors || [],
+        paper_registration: landingData?.paper_registration || {
+            presentation_type: 'Speech',
+            paper_title: 'International Conference on Information Technology 2026',
+            file_url: '',
+            file_name: '',
+        },
     });
 
     useEffect(() => {
@@ -242,6 +249,7 @@ export default function CmsLandingPage({ landingData }) {
         { id: 'speakers', name: 'Featured / Keynote Speakers' },
         { id: 'linimasa', name: 'Important Dates / Linimasa' },
         { id: 'sponsor', name: 'Partner / Sponsor' },
+        { id: 'pendaftaran_paper', name: 'Pendaftaran paper' },
     ];
 
     return (
@@ -435,6 +443,19 @@ export default function CmsLandingPage({ landingData }) {
                             processing={processing}
                             onUploadMedia={handleUploadMedia}
                             onRequestDelete={handleRequestDelete}
+                            onNotify={showToast}
+                        />
+                    )}
+
+                    {activeTab === 'pendaftaran_paper' && (
+                        <PaperRegistrationTab
+                            data={data}
+                            setData={setData}
+                            errors={errors}
+                            onSave={handleOpenSaveModal}
+                            onPreview={() => setShowPreviewModal(true)}
+                            processing={processing}
+                            onUploadMedia={handleUploadMedia}
                             onNotify={showToast}
                         />
                     )}

@@ -131,3 +131,4 @@ Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function
 
 Route::post('/admin/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
 Route::post('/api/ai/check-similarity', [AiSimilarityController::class, 'checkSimilarity']);
+Route::middleware('auth')->post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
