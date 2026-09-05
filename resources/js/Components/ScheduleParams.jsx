@@ -1,93 +1,146 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useForm } from '@inertiajs/react';
 
 export default function ScheduleParams({ initialParams = {} }) {
-    const { data, setData, post, processing } = useForm({
-        days: initialParams.days || 2,
-        start_time: initialParams.start_time || '11:00',
-        end_time: initialParams.end_time || '16:00',
-        break_duration: initialParams.break_duration || 15,
-        presenter_duration: initialParams.presenter_duration || 40
-    });
+    const defaultValues = useMemo(() => ({
+        event_days: String(initialParams.event_days || initialParams.days || ''),
+        start_time: initialParams.start_time ? String(initialParams.start_time).substring(0, 5) : '',
+        end_time: initialParams.end_time ? String(initialParams.end_time).substring(0, 5) : '',
+        break_duration: String(initialParams.break_duration_minutes ?? initialParams.break_duration ?? ''),
+        presenter_duration: String(initialParams.presentation_duration_minutes ?? initialParams.presenter_duration ?? ''),
+        presenter_count: String(initialParams.presenter_count ?? '')
+    }), [initialParams]);
+
+    const { data, setData, post, processing } = useForm(defaultValues);
+
+    const isAnyFieldFilled = Object.values(data).some(
+        (val) => val !== '' && val !== null && val !== undefined
+    );
+
+    const hasChanges = Object.keys(defaultValues).some(
+        (key) => String(data[key] ?? '') !== String(defaultValues[key] ?? '')
+    );
+
+    const handleReset = () => {
+        setData({
+            event_days: '',
+            start_time: '',
+            end_time: '',
+            break_duration: '',
+            presenter_duration: '',
+            presenter_count: ''
+        });
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!hasChanges) return;
         post('/admin/schedule/params', {
             preserveScroll: true
         });
     };
 
     return (
-        <div className="quenza-card rounded-quenza-xl">
-            <div className="mb-4">
-                <h3 className="text-quenza-large font-quenza-bold text-quenza-text-primary">Kelola Data Ruangan</h3>
-                <p className="text-quenza-small font-quenza-regular text-quenza-text-secondary mt-0.5">Nama, lokasi/online meet, kapasitas, & topik</p>
+        <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-xs border border-gray-100">
+            <div className="mb-6">
+                <h2 className="font-bold text-lg text-gray-900 tracking-tight">Konfigurasi Durasi Acara</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                    Jumlah hari, jam operasional, jeda istirahat &amp; durasi presenter (sama rata semua sesi)
+                </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-xs text-gray-600 mb-1">Jumlah Hari</label>
-                    <input 
-                        type="number" 
-                        min="1"
-                        max="30"
-                        required
-                        value={data.days}
-                        onChange={(e) => setData('days', parseInt(e.target.value) || 1)}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    {/* Row 1 */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Jumlah Hari</label>
+                        <input 
+                            type="text" 
+                            value={data.event_days}
+                            onChange={(e) => setData('event_days', e.target.value)}
+                            placeholder="Isi Jumlah Hari"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Jam Mulai</label>
+                        <input 
+                            type="text" 
+                            value={data.start_time}
+                            onChange={(e) => setData('start_time', e.target.value)}
+                            placeholder="Masukkan Jam Mulai Presenter"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
+
+                    {/* Row 2 */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Jam Selesai</label>
+                        <input 
+                            type="text" 
+                            value={data.end_time}
+                            onChange={(e) => setData('end_time', e.target.value)}
+                            placeholder="Masukkan Jam Selesai Presenter"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Jeda Istirahat (menit)</label>
+                        <input 
+                            type="text" 
+                            value={data.break_duration}
+                            onChange={(e) => setData('break_duration', e.target.value)}
+                            placeholder="Masukkan Jeda Itirahat"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
+
+                    {/* Row 3 */}
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Durasi / Presenter (menit)</label>
+                        <input 
+                            type="text" 
+                            value={data.presenter_duration}
+                            onChange={(e) => setData('presenter_duration', e.target.value)}
+                            placeholder="Masukkan Durasi"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1.5">Jumlah Presenter</label>
+                        <input 
+                            type="text" 
+                            value={data.presenter_count}
+                            onChange={(e) => setData('presenter_count', e.target.value)}
+                            placeholder="Masukkan Jumlah Presenter"
+                            className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 focus:ring-1 focus:ring-[#0b603a] focus:border-[#0b603a] focus:outline-none transition"
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label className="block text-xs text-gray-600 mb-1">Jam Mulai</label>
-                    <input 
-                        type="time" 
-                        required
-                        value={data.start_time}
-                        onChange={(e) => setData('start_time', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs text-gray-600 mb-1">Jam Selesai</label>
-                    <input 
-                        type="time" 
-                        required
-                        value={data.end_time}
-                        onChange={(e) => setData('end_time', e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs text-gray-600 mb-1">Jeda istirahat (menit)</label>
-                    <input 
-                        type="number" 
-                        min="0"
-                        max="180"
-                        required
-                        value={data.break_duration}
-                        onChange={(e) => setData('break_duration', parseInt(e.target.value) || 0)}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                </div>
-                <div className="md:col-span-2">
-                    <label className="block text-xs text-gray-600 mb-1">Durasi / Presenter (menit)</label>
-                    <input 
-                        type="number" 
-                        min="5"
-                        max="300"
-                        required
-                        value={data.presenter_duration}
-                        onChange={(e) => setData('presenter_duration', parseInt(e.target.value) || 1)}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    />
-                </div>
-                <div className="md:col-span-2 flex justify-end pt-2">
+
+                <div className="flex justify-end items-center gap-3 pt-4">
+                    <button 
+                        type="button"
+                        onClick={handleReset}
+                        disabled={!isAnyFieldFilled || processing}
+                        className={`border border-gray-300 text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors ${
+                            !isAnyFieldFilled || processing 
+                                ? 'opacity-40 text-gray-400 border-gray-200 cursor-not-allowed' 
+                                : 'hover:bg-gray-50 text-gray-700 cursor-pointer'
+                        }`}
+                    >
+                        Reset
+                    </button>
                     <button 
                         type="submit"
-                        disabled={processing}
-                        className="bg-[#0b603a] text-white text-xs font-semibold px-4 py-2.5 rounded-lg hover:bg-emerald-800 transition"
+                        disabled={!hasChanges || processing}
+                        className={`text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-xs ${
+                            !hasChanges || processing
+                                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                : 'bg-[#0b603a] hover:bg-[#084c2d] text-white cursor-pointer'
+                        }`}
                     >
-                        {processing ? 'Menyimpan...' : 'Simpan Parameter'}
+                        {processing ? 'Menyimpan...' : 'Simpan Durasi Acara'}
                     </button>
                 </div>
             </form>

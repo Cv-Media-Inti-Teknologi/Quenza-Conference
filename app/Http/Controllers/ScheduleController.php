@@ -48,16 +48,20 @@ class ScheduleController extends Controller
     {
         $validated = $request->validate([
             'event_days' => 'required|integer|min:1',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
+            'start_time' => 'required|string',
+            'end_time' => 'required|string',
             'presenter_duration' => 'required|integer|min:1',
+            'break_duration' => 'nullable|integer|min:0',
         ]);
 
-        $setting = EventSetting::first();
+        $setting = EventSetting::first() ?? new EventSetting();
         $setting->event_days = (int) $validated['event_days'];
-        $setting->start_time = $validated['start_time'].':00';
-        $setting->end_time = $validated['end_time'].':00';
+        $setting->start_time = strlen($validated['start_time']) === 5 ? $validated['start_time'].':00' : $validated['start_time'];
+        $setting->end_time = strlen($validated['end_time']) === 5 ? $validated['end_time'].':00' : $validated['end_time'];
         $setting->presentation_duration_minutes = (int) $validated['presenter_duration'];
+        if (isset($validated['break_duration'])) {
+            $setting->break_duration_minutes = (int) $validated['break_duration'];
+        }
         $setting->save();
 
         return back()->with('success', 'Parameter penjadwalan berhasil diupdate');
