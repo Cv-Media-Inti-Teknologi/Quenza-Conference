@@ -30,12 +30,12 @@ class ScheduleTest extends TestCase
                         'message' => [
                             'content' => json_encode([
                                 'allocations' => [
-                                    ['paper_id' => 1, 'room_id' => 1]
-                                ]
-                            ])
-                        ]
-                    ]
-                ]
+                                    ['paper_id' => 1, 'room_id' => 1],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
             ], 200),
         ]);
 

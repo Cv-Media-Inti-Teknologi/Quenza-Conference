@@ -68,7 +68,7 @@ class ScheduleController extends Controller
             return back()->with('error', 'Jam mulai harus lebih awal dari jam selesai.');
         }
 
-        $roomId = !empty($validated['room_id']) ? (int) $validated['room_id'] : null;
+        $roomId = ! empty($validated['room_id']) ? (int) $validated['room_id'] : null;
 
         $setting = EventSetting::updateOrCreate(
             ['room_id' => $roomId],
@@ -161,6 +161,7 @@ class ScheduleController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Ruangan tidak tersedia.'], 422);
             }
+
             return back()->with('error', 'Ruangan tidak tersedia.');
         }
 
@@ -180,6 +181,7 @@ class ScheduleController extends Controller
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Tidak ada paper berstatus accepted untuk dijadwalkan.'], 422);
             }
+
             return back()->with('error', 'Tidak ada paper berstatus accepted untuk dijadwalkan.');
         }
 
@@ -287,7 +289,7 @@ class ScheduleController extends Controller
     public function publishSchedule(Request $request): JsonResponse|RedirectResponse
     {
         Schedule::query()->update(['is_locked' => true]);
-        
+
         $scheduledPaperIds = Schedule::pluck('paper_id')->unique();
         Paper::whereIn('id', $scheduledPaperIds)->update(['status' => 'published']);
 
@@ -418,7 +420,7 @@ class ScheduleController extends Controller
                     $sessions[] = [
                         'id' => $schedule->id,
                         'paper_id' => $schedule->paper_id,
-                        'paper_code' => $schedule->paper?->paper_code ?? "#AI-".sprintf('%02d', $schedule->paper_id),
+                        'paper_code' => $schedule->paper?->paper_code ?? '#AI-'.sprintf('%02d', $schedule->paper_id),
                         'title' => $schedule->paper?->title ?? 'Judul Riset Ilmiah',
                         'author_name' => $authorName,
                         'author_initials' => $initials,

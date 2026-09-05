@@ -19,9 +19,7 @@ class SendSchedulePublishNotificationJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Execute the job.
@@ -30,7 +28,7 @@ class SendSchedulePublishNotificationJob implements ShouldQueue
     {
         $schedules = Schedule::with(['paper.author', 'room'])->where('is_locked', true)->get();
 
-        Log::info('Dispatching mass schedule notification emails for ' . $schedules->count() . ' sessions.');
+        Log::info('Dispatching mass schedule notification emails for '.$schedules->count().' sessions.');
 
         foreach ($schedules as $schedule) {
             $paper = $schedule->paper;
