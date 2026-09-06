@@ -236,23 +236,35 @@ class ScheduleController extends Controller
                     break;
                 }
 
-                $paper = $assignedPapers[$paperIndex];
-                $authorId = $paper->user_id;
                 $timeKey = $slotStart->format('H:i');
 
-                $hasConflict = false;
-                if (isset($authorTimeSlots[$authorId][$timeKey])) {
-                    $hasConflict = true;
-                    $conflicts[] = [
-                        'paper_id' => $paper->id,
-                        'author_id' => $authorId,
-                        'time' => $timeKey,
-                        'room_id' => $room->id,
-                        'conflicting_room_id' => $authorTimeSlots[$authorId][$timeKey],
-                    ];
-                } else {
-                    $authorTimeSlots[$authorId][$timeKey] = $room->id;
+                // Cari paper yang bebas konflik di jam ini
+                $validPaperIndex = -1;
+                for ($i = $paperIndex; $i < count($assignedPapers); $i++) {
+                    $testPaper = $assignedPapers[$i];
+                    if (!isset($authorTimeSlots[$testPaper->user_id][$timeKey])) {
+                        $validPaperIndex = $i;
+                        break;
+                    }
                 }
+
+                if ($validPaperIndex === -1) {
+                    // Semua sisa paper berkonflik di jam ini! Lewati slot ini.
+                    $currentTime->addMinutes($slotMinutes);
+                    continue;
+                }
+
+                // Jika paper bebas konflik bukan yang pertama di antrean, tukar posisinya
+                if ($validPaperIndex !== $paperIndex) {
+                    $temp = $assignedPapers[$paperIndex];
+                    $assignedPapers[$paperIndex] = $assignedPapers[$validPaperIndex];
+                    $assignedPapers[$validPaperIndex] = $temp;
+                }
+
+                $paper = $assignedPapers[$paperIndex];
+                $authorId = $paper->user_id;
+                
+                $authorTimeSlots[$authorId][$timeKey] = $room->id;
 
                 Schedule::create([
                     'paper_id' => $paper->id,
@@ -446,8 +458,12 @@ class ScheduleController extends Controller
                     ];
                 }
             } else {
-                // If no schedule yet in DB, provide realistic mock representation based on room
-                $sessions = $this->getDefaultMockSessionsForRoom($room, $roomConfig);
+                $sessions[] = [
+                    'is_empty_slot' => true,
+                    'is_break' => false,
+                    'time_slot' => $startTime->format('H:i') . ' - ' . $startTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                    'title' => 'Slot Kosong Tersedia',
+                ];
             }
 
             $formattedRooms[] = [

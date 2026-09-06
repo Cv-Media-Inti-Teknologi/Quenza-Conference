@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function QuenzaAiSchedulingEngine({ 
     allocations = [],
@@ -197,75 +198,41 @@ export default function QuenzaAiSchedulingEngine({
         setIsRunning(true);
         setCurrentStep(1);
 
-        const timer1 = setTimeout(() => setCurrentStep(2), 400);
-        const timer2 = setTimeout(() => setCurrentStep(3), 800);
-
         try {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            const res = await fetch('/admin/schedule/auto', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                },
-                body: JSON.stringify({})
-            });
+            const res = await axios.post('/admin/schedule/auto', {});
 
-            const json = await res.json();
+            const json = res.data;
+            
+            setCurrentStep(2);
             
             setTimeout(() => {
-                setCurrentStep(4);
-                setIsRunning(false);
-                if (json.rooms) {
-                    const { updatedRooms, conflictCount: detectedCount } = evaluateScheduleConflicts(json.rooms);
-                    setRoomsData(updatedRooms);
-                    setConflictCount(json.conflict_count ?? detectedCount);
-                } else {
-                    setConflictCount(json.conflict_count ?? 0);
-                }
-                setIsPublished(false);
-                showNotification('✨ Rekomendasi jadwal berhasil disusun otomatis oleh Quenza AI!');
-            }, 1200);
+                setCurrentStep(3);
+                
+                setTimeout(() => {
+                    setCurrentStep(4);
+                    setIsRunning(false);
+                    if (json.rooms) {
+                        const { updatedRooms, conflictCount: detectedCount } = evaluateScheduleConflicts(json.rooms);
+                        setRoomsData(updatedRooms);
+                        setConflictCount(json.conflict_count ?? detectedCount);
+                    } else {
+                        setConflictCount(json.conflict_count ?? 0);
+                    }
+                    setIsPublished(false);
+                    showNotification('✨ Rekomendasi jadwal berhasil disusun otomatis oleh Quenza AI!');
+                }, 400);
+                
+            }, 400);
+            
         } catch (err) {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            setTimeout(() => {
-                setCurrentStep(4);
-                setIsRunning(false);
-                showNotification('Jadwal diperbarui dengan optimasi topik.');
-            }, 1000);
+            setIsRunning(false);
+            const errorMsg = err.response?.data?.message || err.message || 'Terjadi masalah koneksi atau error di server.';
+            showNotification(`❌ Gagal menyusun jadwal: ${errorMsg}`);
         }
     };
 
     const handleResolveConflicts = () => {
-        const newRooms = JSON.parse(JSON.stringify(roomsData));
-        
-        // Auto resolve: swap conflicting slot with a non-conflicting slot in room 2
-        if (newRooms.length >= 2 && newRooms[1].sessions && newRooms[1].sessions.length >= 4) {
-            const s0 = newRooms[1].sessions[0];
-            const s3 = newRooms[1].sessions[3] || newRooms[1].sessions[2];
-            if (s0 && s3 && !s0.is_break && !s3.is_break) {
-                const t0 = s0.time_slot;
-                const t3 = s3.time_slot;
-                s0.time_slot = t3;
-                s3.time_slot = t0;
-                newRooms[1].sessions[0] = s3;
-                newRooms[1].sessions[3] = s0;
-            }
-        }
-
-        const { updatedRooms } = evaluateScheduleConflicts(newRooms);
-        setRoomsData(updatedRooms.map(r => ({
-            ...r,
-            sessions: (r.sessions || []).map(s => ({
-                ...s,
-                has_conflict: false,
-                badge: s.badge === 'Konflik Jadwal' ? '✓ Multi-Paper Resolved' : s.badge
-            }))
-        })));
-        setConflictCount(0);
-        showNotification('✓ Semua potensi bentrok berhasil diselesaikan secara otomatis.');
+        handleRunAi();
     };
 
     const handleSaveDraft = () => {
