@@ -155,52 +155,31 @@ class PaperReviewController extends Controller
 
     public function getDashboardMetrics(Request $request): JsonResponse
     {
-        $period = $request->input('period', 'month');
-        $daysBack = match ($period) {
-            'today' => 1,
-            'week' => 7,
-            'month' => 30,
-            default => 30,
-        };
-
-        $submissionTrend = [
-            ['date' => 'Mon', 'count' => 12],
-            ['date' => 'Tue', 'count' => 19],
-            ['date' => 'Wed', 'count' => 8],
-            ['date' => 'Thu', 'count' => 15],
-            ['date' => 'Fri', 'count' => 22],
-        ];
-
-        $paperReviewedTrend = [
-            ['date' => 'Mon', 'count' => 5],
-            ['date' => 'Tue', 'count' => 8],
-            ['date' => 'Wed', 'count' => 3],
-            ['date' => 'Thu', 'count' => 12],
-            ['date' => 'Fri', 'count' => 10],
-        ];
-
-        $acceptedTrend = [
-            ['date' => 'Mon', 'count' => 2],
-            ['date' => 'Tue', 'count' => 3],
-            ['date' => 'Wed', 'count' => 1],
-            ['date' => 'Thu', 'count' => 4],
-            ['date' => 'Fri', 'count' => 5],
-        ];
-
         $totalSubmissions = Paper::count();
         $totalAccepted = Paper::where('status', 'accepted')->count();
         $totalReviewed = PaperReview::whereNotNull('submitted_at')->count();
+        
+        // Dynamic Trends (Last 7 days)
+        $submissionTrend = Paper::selectRaw("strftime('%d/%m', created_at) as date, count(*) as count")
+            ->where('created_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('created_at')
+            ->get();
+
+        $paperReviewedTrend = PaperReview::selectRaw("strftime('%d/%m', submitted_at) as date, count(*) as count")
+            ->whereNotNull('submitted_at')
+            ->where('submitted_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('submitted_at')
+            ->get();
+
         $topTracks = Paper::selectRaw('track, COUNT(*) as count')
+            ->whereNotNull('track')
             ->groupBy('track')
             ->orderByDesc('count')
             ->limit(3)
             ->get()
-            ->map(function ($item) {
-                return [
-                    'track' => $item->track,
-                    'count' => $item->count,
-                ];
-            });
+            ->map(fn($item) => ['track' => $item->track, 'count' => $item->count]);
 
         $queueStats = [
             'not_assigned' => Paper::where('status', 'submitted')->count(),
@@ -211,14 +190,9 @@ class PaperReviewController extends Controller
         return response()->json([
             'submission_trend' => $submissionTrend,
             'paper_reviewed_trend' => $paperReviewedTrend,
-            'accepted_trend' => $acceptedTrend,
             'total_submissions' => $totalSubmissions,
             'total_accepted' => $totalAccepted,
-            'total_trend_percent' => '+18%',
             'total_reviewed' => $totalReviewed,
-            'reviewed_trend_percent' => '+5%',
-            'total_accepted_count' => $totalAccepted,
-            'accepted_trend_percent' => '+8%',
             'queue' => $queueStats,
             'top_tracks' => $topTracks,
         ]);
