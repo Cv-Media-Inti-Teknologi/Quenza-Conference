@@ -31,8 +31,8 @@ class UserController extends Controller
             'expertise',
             'created_at',
         ])
-        ->orderBy('id', 'asc')
-        ->get();
+            ->orderBy('id', 'asc')
+            ->get();
 
         $stats = [
             'total' => $users->count(),
@@ -74,7 +74,7 @@ class UserController extends Controller
      */
     public function toggleVerification(User $user): RedirectResponse
     {
-        $user->is_verified = !$user->is_verified;
+        $user->is_verified = ! $user->is_verified;
         $user->save();
 
         $statusLabel = $user->is_verified ? 'Verified' : 'Non-Verified';

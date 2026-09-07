@@ -4,26 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Paper;
 use App\Models\PaperReview;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Http\JsonResponse;
 
 class ReviewerController extends Controller
 {
     public function dashboard()
     {
         $reviewerId = auth()->id();
-        
+
         $pendingCount = PaperReview::where('reviewer_id', $reviewerId)
             ->where('status', 'pending')
             ->count();
-        
+
         $completedCount = PaperReview::where('reviewer_id', $reviewerId)
             ->where('status', 'completed')
             ->count();
-        
+
         $recentPapers = PaperReview::where('reviewer_id', $reviewerId)
             ->where('status', 'pending')
             ->with('paper')
@@ -73,7 +72,7 @@ class ReviewerController extends Controller
             $search = $request->get('search');
             $query->whereHas('paper', function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('id', 'like', "%{$search}%");
+                    ->orWhere('id', 'like', "%{$search}%");
             });
         }
 
@@ -81,7 +80,7 @@ class ReviewerController extends Controller
 
         return response()->json([
             'data' => $reviews->map(fn ($review) => [
-                'paper_id' => 'P-' . str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
+                'paper_id' => 'P-'.str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
                 'title' => $review->paper->title,
                 'track' => $review->paper->track,
                 'similarity_score' => $review->paper->similarity_score,
@@ -99,7 +98,7 @@ class ReviewerController extends Controller
     public function getReviewDetail($paperId): JsonResponse
     {
         $reviewerId = auth()->id();
-        
+
         $review = PaperReview::where('paper_id', $paperId)
             ->where('reviewer_id', $reviewerId)
             ->with('paper')
@@ -108,7 +107,7 @@ class ReviewerController extends Controller
         $paper = $review->paper;
 
         return response()->json([
-            'paper_id' => 'P-' . str_pad($paper->id, 3, '0', STR_PAD_LEFT),
+            'paper_id' => 'P-'.str_pad($paper->id, 3, '0', STR_PAD_LEFT),
             'title' => $paper->title,
             'abstract' => $paper->abstract,
             'track' => $paper->track,
@@ -136,7 +135,7 @@ class ReviewerController extends Controller
         ]);
 
         $reviewerId = auth()->id();
-        
+
         $review = PaperReview::where('paper_id', $paperId)
             ->where('reviewer_id', $reviewerId)
             ->firstOrFail();
@@ -173,7 +172,7 @@ class ReviewerController extends Controller
     public function getReviewHistory(): JsonResponse
     {
         $reviewerId = auth()->id();
-        
+
         $history = PaperReview::where('reviewer_id', $reviewerId)
             ->where('status', 'completed')
             ->with('paper')
@@ -182,7 +181,7 @@ class ReviewerController extends Controller
 
         return response()->json([
             'data' => $history->map(fn ($review) => [
-                'paper_id' => 'P-' . str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
+                'paper_id' => 'P-'.str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
                 'title' => $review->paper->title,
                 'decision' => $review->decision,
                 'score' => $review->score,

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
-use App\Models\TicketPricing;
 use App\Models\Expense;
+use App\Models\TicketPricing;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -44,11 +43,11 @@ class PaymentController extends Controller
         $transaction = Transaction::create([
             'user_id' => $user->id,
             'type' => $validated['type'],
-            'description' => 'Pembayaran ' . ucfirst($validated['type']),
+            'description' => 'Pembayaran '.ucfirst($validated['type']),
             'amount' => $price,
             'status' => 'pending',
             'payment_method' => $validated['payment_method'] ?? 'transfer',
-            'reference_code' => 'INV-' . strtoupper(substr(uniqid(), -8)),
+            'reference_code' => 'INV-'.strtoupper(substr(uniqid(), -8)),
             'expires_at' => now()->addDay(),
         ]);
 
@@ -71,7 +70,7 @@ class PaymentController extends Controller
         $orderId = $payload['order_id'] ?? null;
         $transactionStatus = $payload['transaction_status'] ?? null;
 
-        if (!$orderId || !$transactionStatus) {
+        if (! $orderId || ! $transactionStatus) {
             return response()->json(['error' => 'Invalid webhook payload'], 400);
         }
 
@@ -80,7 +79,7 @@ class PaymentController extends Controller
             ->orWhere('id', str_replace('INV-', '', $orderId))
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return response()->json(['error' => 'Transaction not found'], 404);
         }
 

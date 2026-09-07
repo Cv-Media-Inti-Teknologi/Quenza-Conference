@@ -32,6 +32,7 @@ class LoginController extends Controller
 
             if ($user->isBlocked()) {
                 Auth::logout();
+
                 return back()->withErrors([
                     'username' => 'Akun Anda telah dinonaktifkan atau diblokir oleh Administrator.',
                 ]);

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Transaction;
 use App\Models\TicketPricing;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +19,7 @@ class PaymentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->superAdmin = User::factory()->create([
             'role' => 'super_admin',
         ]);

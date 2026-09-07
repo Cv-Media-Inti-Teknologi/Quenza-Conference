@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\TicketPricing;
-use App\Models\TransactionLog;
 use App\Models\Transaction;
+use App\Models\TransactionLog;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -29,6 +29,7 @@ class TicketingController extends Controller
     public function getTicketPricing(Request $request)
     {
         $pricing = TicketPricing::all();
+
         return response()->json($pricing);
     }
 
@@ -140,7 +141,7 @@ class TicketingController extends Controller
     {
         $validated = $request->validate([
             'reason' => 'required|string',
-            'amount' => 'required|numeric|min:0|max:' . $transaction->amount,
+            'amount' => 'required|numeric|min:0|max:'.$transaction->amount,
         ]);
 
         $refund = $transaction->refunds()->create([

@@ -93,7 +93,7 @@ class ConferenceSeeder extends Seeder
 
         // 4. Seed Initial Schedules
         $today = Carbon::today()->format('Y-m-d');
-        
+
         Schedule::firstOrCreate(
             ['paper_id' => $paper1->id],
             [

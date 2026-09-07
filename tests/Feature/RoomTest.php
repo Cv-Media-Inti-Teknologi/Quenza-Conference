@@ -54,7 +54,7 @@ class RoomTest extends TestCase
             'topic' => 'AI',
         ]);
 
-        $response = $this->actingAs($this->superAdmin)->put('/admin/schedule/room/' . $room->id, [
+        $response = $this->actingAs($this->superAdmin)->put('/admin/schedule/room/'.$room->id, [
             'name' => 'Ruang Baru',
             'location' => 'Lantai 2',
             'capacity' => 100,
@@ -81,7 +81,7 @@ class RoomTest extends TestCase
             'topic' => 'Cloud',
         ]);
 
-        $response = $this->actingAs($this->superAdmin)->delete('/admin/schedule/room/' . $room->id);
+        $response = $this->actingAs($this->superAdmin)->delete('/admin/schedule/room/'.$room->id);
 
         $response->assertRedirect();
         $response->assertSessionHas('success');

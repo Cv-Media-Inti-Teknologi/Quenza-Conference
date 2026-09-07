@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -9,9 +10,9 @@ class AiSchedulingService
 {
     /**
      * Map papers to the most suitable room based on topic.
-     * 
-     * @param \Illuminate\Database\Eloquent\Collection $papers
-     * @param \Illuminate\Database\Eloquent\Collection $rooms
+     *
+     * @param  Collection  $papers
+     * @param  Collection  $rooms
      * @return array Mapping of paper_id => room_id
      */
     public function clusterPapersToRooms($papers, $rooms): array
@@ -21,12 +22,12 @@ class AiSchedulingService
         }
 
         // Prepare context for LLM
-        $roomsData = $rooms->map(fn($r) => [
+        $roomsData = $rooms->map(fn ($r) => [
             'id' => $r->id,
             'topic' => $r->topic,
         ])->toJson();
 
-        $papersData = $papers->map(fn($p) => [
+        $papersData = $papers->map(fn ($p) => [
             'id' => $p->id,
             'title' => $p->title,
             'abstract' => $p->abstract,
@@ -62,10 +63,10 @@ EOT;
                 'model' => 'gpt-4o-mini',
                 'messages' => [
                     ['role' => 'system', 'content' => 'You are a JSON-only response bot.'],
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'user', 'content' => $prompt],
                 ],
                 'max_tokens' => 1500,
-                'temperature' => 0.1
+                'temperature' => 0.1,
             ]);
 
             if ($response->successful()) {
@@ -81,11 +82,12 @@ EOT;
                     foreach ($data['allocations'] as $alloc) {
                         $mapping[$alloc['paper_id']] = $alloc['room_id'];
                     }
+
                     return $mapping;
                 }
             }
         } catch (\Exception $e) {
-            Log::error('AI Scheduling Error: ' . $e->getMessage());
+            Log::error('AI Scheduling Error: '.$e->getMessage());
         }
 
         // Fallback: Random allocation if API fails
@@ -94,6 +96,7 @@ EOT;
         foreach ($papers as $paper) {
             $mapping[$paper->id] = $roomIds[array_rand($roomIds)];
         }
+
         return $mapping;
     }
 }

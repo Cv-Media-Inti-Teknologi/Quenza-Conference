@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Transaction;
 use App\Models\Expense;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
@@ -20,7 +21,7 @@ class DashboardTest extends TestCase
     {
         parent::setUp();
         $this->superAdmin = User::factory()->create([
-            'role' => 'super_admin'
+            'role' => 'super_admin',
         ]);
     }
 
@@ -50,7 +51,7 @@ class DashboardTest extends TestCase
         $response->assertStatus(200);
 
         // Verify the component prop contains the real value from DB, not mock
-        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Dashboard')
             ->where('metrics.cash_in.value', 'Rp 5.000.000')
             ->where('metrics.cash_out.value', 'Rp 1.000.000')

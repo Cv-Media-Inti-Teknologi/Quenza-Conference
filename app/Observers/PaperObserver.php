@@ -2,8 +2,8 @@
 
 namespace App\Observers;
 
-use App\Models\Paper;
 use App\Jobs\CalculatePaperSimilarity;
+use App\Models\Paper;
 
 class PaperObserver
 {

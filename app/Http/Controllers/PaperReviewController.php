@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Paper;
 use App\Models\PaperReview;
 use App\Models\User;
+use App\Services\AiRecommendationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -43,7 +44,7 @@ class PaperReviewController extends Controller
 
         $data = $papers->map(function ($paper) {
             return [
-                'id' => 'P-' . str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
+                'id' => 'P-'.str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
                 'title' => $paper->title,
                 'track' => $paper->track,
                 'similarity_score' => $paper->similarity_score,
@@ -91,14 +92,14 @@ class PaperReviewController extends Controller
         ]);
     }
 
-    public function getAiRecommendations($id, \App\Services\AiRecommendationService $aiService): JsonResponse
+    public function getAiRecommendations($id, AiRecommendationService $aiService): JsonResponse
     {
         $paper = Paper::findOrFail($id);
-        
+
         $recommendedReviewers = $aiService->getRecommendations($paper);
-        
+
         return response()->json([
-            'id' => 'P-' . str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
+            'id' => 'P-'.str_pad((string) $paper->id, 3, '0', STR_PAD_LEFT),
             'recommended_reviewers' => $recommendedReviewers,
         ]);
     }

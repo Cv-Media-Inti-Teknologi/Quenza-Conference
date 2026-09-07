@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sanitizeUrl } from '../../Utils/sanitize';
 
 export default function PreviewLandingModal({ isOpen, onClose, data }) {
     const [previewMode, setPreviewMode] = useState('mobile'); // default or switchable: desktop, tablet, mobile
@@ -237,15 +238,54 @@ export default function PreviewLandingModal({ isOpen, onClose, data }) {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                                        <h4 className="font-quenza-semibold text-gray-900 text-quenza-small truncate">{d.title}</h4>
+                                                        <h4 className="font-quenza-semibold text-gray-900 text-quenza-small truncate">{d.keterangan || d.title}</h4>
                                                         <span className="text-[11px] font-quenza-bold text-quenza-secondary bg-green-50 px-2 py-0.5 rounded-md border border-green-200 shrink-0">
-                                                            {d.date_info}
+                                                            {d.tanggal || d.date_info}
                                                         </span>
                                                     </div>
                                                     {d.description && <p className="text-[11px] text-gray-500 mt-0.5">{d.description}</p>}
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Pendaftaran Paper Preview */}
+                            {data.paper_registration && (
+                                <section className="p-6 bg-linear-to-b from-white to-gray-50 border-b border-gray-100">
+                                    <div className="text-center mb-4">
+                                        <span className="px-2.5 py-0.5 rounded-full bg-green-100 text-quenza-secondary text-[11px] font-quenza-bold uppercase tracking-wider">
+                                            Call For Papers
+                                        </span>
+                                        <h2 className="text-quenza-large font-quenza-bold text-gray-900 mt-1">Pendaftaran &amp; Naskah Paper</h2>
+                                    </div>
+                                    <div className="max-w-md mx-auto bg-white p-4 rounded-quenza-xl border border-gray-200 shadow-2xs">
+                                        <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-100">
+                                            <span className="text-gray-500 font-quenza-medium">Jenis Presentasi:</span>
+                                            <span className="font-quenza-bold text-quenza-secondary bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
+                                                {data.paper_registration.presentation_type || 'Speech'}
+                                            </span>
+                                        </div>
+                                        <div className="mt-3">
+                                            <span className="text-[11px] text-gray-400 font-quenza-medium block">Judul Paper:</span>
+                                            <p className="text-quenza-small font-quenza-semibold text-gray-800 mt-0.5">
+                                                {data.paper_registration.paper_title || 'International Conference on Information Technology 2026'}
+                                            </p>
+                                        </div>
+                                        {data.paper_registration.file_url && (
+                                            <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
+                                                <span className="text-gray-600 truncate max-w-[200px] flex items-center gap-1.5">
+                                                    <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    </svg>
+                                                    {data.paper_registration.file_name || 'Naskah Paper.pdf'}
+                                                </span>
+                                                <a href={sanitizeUrl(data.paper_registration.file_url)} target="_blank" rel="noopener noreferrer" className="text-quenza-secondary font-quenza-semibold hover:underline">
+                                                    Unduh
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </section>
                             )}
@@ -260,7 +300,7 @@ export default function PreviewLandingModal({ isOpen, onClose, data }) {
                                         {sponsors.map((sp, idx) => (
                                             <div key={idx} className="flex flex-col items-center gap-1">
                                                 <div className="h-10 w-24 flex items-center justify-center p-1 bg-white rounded-md border border-gray-200 shadow-2xs">
-                                                    <img src={sp.logo} alt={sp.name} className="max-h-full max-w-full object-contain" />
+                                                    <img src={sanitizeUrl(sp.logo)} alt={sp.name} className="max-h-full max-w-full object-contain" />
                                                 </div>
                                                 <span className="text-[11px] font-quenza-medium text-gray-500">{sp.name}</span>
                                             </div>

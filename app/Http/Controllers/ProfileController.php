@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -42,7 +43,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['required', 'string', 'max:20'],
             'institution' => ['nullable', 'string', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -52,11 +53,11 @@ class ProfileController extends Controller
             // Hapus avatar lama kalau itu file upload sendiri (bukan URL dicebear)
             if ($user->avatar && str_starts_with($user->avatar, '/storage/')) {
                 $oldPath = str_replace('/storage/', '', $user->avatar);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete($oldPath);
             }
 
             $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar'] = '/storage/' . $path;
+            $validated['avatar'] = '/storage/'.$path;
         }
 
         $user->update($validated);

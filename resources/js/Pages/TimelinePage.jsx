@@ -97,11 +97,11 @@ export default function TimelinePage({ landingData, auth }) {
                                         <div className="bg-quenza-bg p-6 rounded-quenza-xl border border-gray-200 shadow-2xs hover:border-quenza-secondary transition-all">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                                 <h3 className="text-quenza-large font-quenza-bold text-gray-900">
-                                                    {dateItem.title}
+                                                    {dateItem.keterangan || dateItem.title}
                                                 </h3>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-quenza-medium font-quenza-bold text-quenza-secondary bg-green-50 px-3 py-1 rounded-quenza-md border border-green-200/60">
-                                                        {dateItem.date_info}
+                                                        {dateItem.tanggal || dateItem.date_info}
                                                     </span>
                                                     <span className={`px-2.5 py-0.5 rounded-full text-quenza-small ${statusBadge.bg}`}>
                                                         {statusBadge.label}

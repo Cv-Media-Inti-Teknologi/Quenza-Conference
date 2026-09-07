@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Models\Expense;
 use App\Models\Refund;
+use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 class FinanceController extends Controller
 {
@@ -27,15 +27,15 @@ class FinanceController extends Controller
         return response()->json($this->getMetricsData($request));
     }
 
-    private function getMetricsData(Request $request = null): array
+    private function getMetricsData(?Request $request = null): array
     {
         $query = Transaction::where('status', 'paid');
         $expenseQuery = Expense::where('status', 'approved');
 
         if ($request?->query('startDate') || $request?->query('endDate')) {
-            $startDate = $request?->query('startDate') ? \Carbon\Carbon::parse($request->query('startDate'))->startOfDay() : \Carbon\Carbon::now()->startOfMonth();
-            $endDate = $request?->query('endDate') ? \Carbon\Carbon::parse($request->query('endDate'))->endOfDay() : \Carbon\Carbon::now()->endOfMonth();
-            
+            $startDate = $request?->query('startDate') ? Carbon::parse($request->query('startDate'))->startOfDay() : Carbon::now()->startOfMonth();
+            $endDate = $request?->query('endDate') ? Carbon::parse($request->query('endDate'))->endOfDay() : Carbon::now()->endOfMonth();
+
             $query->whereBetween('paid_at', [$startDate, $endDate]);
             $expenseQuery->whereBetween('approved_at', [$startDate, $endDate]);
         }
@@ -218,8 +218,8 @@ class FinanceController extends Controller
 
     public function exportReport(Request $request)
     {
-        $startDate = $request->query('startDate') ? \Carbon\Carbon::parse($request->query('startDate')) : \Carbon\Carbon::now()->startOfMonth();
-        $endDate = $request->query('endDate') ? \Carbon\Carbon::parse($request->query('endDate')) : \Carbon\Carbon::now()->endOfMonth();
+        $startDate = $request->query('startDate') ? Carbon::parse($request->query('startDate')) : Carbon::now()->startOfMonth();
+        $endDate = $request->query('endDate') ? Carbon::parse($request->query('endDate')) : Carbon::now()->endOfMonth();
         $format = $request->query('format', 'pdf');
 
         $metrics = $this->getMetricsData($request);
@@ -260,7 +260,7 @@ class FinanceController extends Controller
         $expenseData = [];
 
         for ($i = $months - 1; $i >= 0; $i--) {
-            $date = \Carbon\Carbon::now()->subMonths($i)->startOfMonth();
+            $date = Carbon::now()->subMonths($i)->startOfMonth();
             $startDate = $date->copy()->startOfMonth()->toDateString();
             $endDate = $date->copy()->endOfMonth()->toDateString();
 
@@ -277,7 +277,7 @@ class FinanceController extends Controller
                 ->sum('amount');
 
             $monthName = $date->format('M');
-            
+
             $incomeData[] = [
                 'name' => $monthName,
                 'value' => (float) $income,

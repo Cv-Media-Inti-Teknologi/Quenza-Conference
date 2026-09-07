@@ -1,0 +1,115 @@
+name: Laravel & React CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  test-and-build:
+    name: Test & Build Pipeline
+    runs-on: ubuntu-latest
+
+    # Environment variables khusus testing
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:H8h2c1F9FkYVb3PZ2L8j+xU5tW2b7A9v1M4k6N8j3Q0=
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+      SESSION_DRIVER: array
+      CACHE_STORE: array
+      QUEUE_CONNECTION: sync
+
+    steps:
+      # =========================================================================
+      # 1. CHECKOUT CODE
+      # =========================================================================
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # =========================================================================
+      # 2. SETUP ENVIRONMENT (PHP & NODE.JS)
+      # =========================================================================
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, sqlite3, fileinfo, gd, bcmath
+          coverage: none
+          tools: composer:v2, pint
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # =========================================================================
+      # 3. CACHE & INSTALL DEPENDENCIES
+      # =========================================================================
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      # =========================================================================
+      # 4. PREPARE APPLICATION STATE & DATABASE
+      # =========================================================================
+      - name: Copy Environment File
+        run: cp .env.example .env
+
+      - name: Prepare SQLite Database & Directory Permissions
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          chmod -R 775 storage bootstrap/cache
+
+      - name: Generate Application Key
+        run: php artisan key:generate --ansi
+
+
+      # =========================================================================
+      # 5. LINT & CODE QUALITY CHECK
+      # =========================================================================
+      - name: Check PHP Code Style (Laravel Pint)
+        run: ./vendor/bin/pint --test
+
+      - name: Validate PHP Syntax (php -l)
+        run: |
+          find app/ config/ database/ routes/ tests/ -type f -name "*.php" -exec php -l {} +
+
+      # =========================================================================
+      # 6. RUN DATABASE MIGRATIONS & SEEDERS
+      # =========================================================================
+      - name: Run Database Migrations
+        run: php artisan migrate --force --ansi
+
+      # =========================================================================
+      # 7. BUILD FRONTEND ASSETS (Vite & React)
+      # =========================================================================
+      - name: Compile Frontend Assets (Vite Build)
+        run: npm run build
+
+      # =========================================================================
+      # 8. RUN AUTOMATED TESTS (PHPUnit / Pest)
+      # =========================================================================
+      - name: Execute Automated Tests
+        run: php artisan test --ansi
+

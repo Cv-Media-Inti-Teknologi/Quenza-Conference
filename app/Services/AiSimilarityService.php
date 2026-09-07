@@ -24,7 +24,7 @@ class AiSimilarityService
                 ->timeout(10)
                 ->post($url, [
                     'model' => 'text-embedding-3-small', // Asumsi model yang disupport
-                    'input' => $text
+                    'input' => $text,
                 ]);
 
             if ($response->successful()) {
@@ -34,12 +34,13 @@ class AiSimilarityService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning("AI Embedding API Error: " . $e->getMessage());
+            Log::warning('AI Embedding API Error: '.$e->getMessage());
         }
 
         // FALLBACK: Jika API gagal (misal karena gateway belum support endpoint ini),
         // kita generate array vektor dummy secara deterministik berdasarkan teks.
-        Log::info("Menggunakan Fallback Dummy Embedding untuk simulasi.");
+        Log::info('Menggunakan Fallback Dummy Embedding untuk simulasi.');
+
         return $this->generateDummyVector($text, 1536);
     }
 
@@ -70,10 +71,10 @@ class AiSimilarityService
         }
 
         $similarity = $dotProduct / (sqrt($normA) * sqrt($normB));
-        
+
         // Membatasi hasil ke 0-1 dan mengubah ke persentase
         $percent = max(0, min(1, $similarity)) * 100;
-        
+
         return (int) round($percent);
     }
 
@@ -91,8 +92,9 @@ class AiSimilarityService
         for ($i = 0; $i < $dimension; $i++) {
             $vector[] = (mt_rand(-100, 100) / 1000);
         }
-        
+
         mt_srand(); // Kembalikan ke random murni
+
         return $vector;
     }
 }
