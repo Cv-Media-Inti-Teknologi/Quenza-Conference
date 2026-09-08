@@ -307,7 +307,7 @@ class FinanceController extends Controller
         fclose($csv);
 
         return response()->streamDownload(
-            fn() => echo $csvContent,
+            fn() => print $csvContent,
             $filename,
             ['Content-Type' => 'text/csv; charset=UTF-8']
         );

@@ -216,13 +216,31 @@ class PaperReviewController extends Controller
             ->orderBy('submitted_at')
             ->get();
 
+        // Hitung trend persentase (compared to previous period)
+        $prevSubmission = Paper::where('created_at', '<', now()->subDays(7))->count();
+        $totalTrendPercent = $prevSubmission > 0 ? round((($totalSubmissions - $prevSubmission) / $prevSubmission) * 100, 1) : 0;
+
+        $prevReviewed = PaperReview::where('submitted_at', '<', now()->subDays(7))->whereNotNull('submitted_at')->count();
+        $reviewedTrendPercent = $prevReviewed > 0 ? round((($totalReviewed - $prevReviewed) / $prevReviewed) * 100, 1) : 0;
+
+        // Accepted trend (last 7 days vs previous)
+        $acceptedTrends = Paper::selectRaw("strftime('%d/%m', created_at) as date, count(*) as count")
+            ->where('status', 'accepted')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('created_at')
+            ->get();
+
+        $prevAccepted = Paper::where('status', 'accepted')->where('created_at', '<', now()->subDays(7))->count();
+        $acceptedTrendPercent = $prevAccepted > 0 ? round((($totalAccepted - $prevAccepted) / $prevAccepted) * 100, 1) : 0;
+
         $topTracks = Paper::selectRaw('track, COUNT(*) as count')
             ->whereNotNull('track')
             ->groupBy('track')
             ->orderByDesc('count')
             ->limit(3)
             ->get()
-            ->map(fn($item) => ['track' => $item->track, 'count' => $item->count]);
+            ->map(fn($item) => ['name' => $item->track, 'count' => $item->count]);
 
         $queueStats = [
             'not_assigned' => Paper::where('status', 'submitted')->count(),
@@ -233,9 +251,17 @@ class PaperReviewController extends Controller
         return response()->json([
             'submission_trend' => $submissionTrend,
             'paper_reviewed_trend' => $paperReviewedTrend,
+            'accepted_trend' => $acceptedTrends,
             'total_submissions' => $totalSubmissions,
             'total_accepted' => $totalAccepted,
+            'total_accepted_count' => $totalAccepted,
             'total_reviewed' => $totalReviewed,
+            'total_trend_percent' => $totalTrendPercent,
+            'reviewed_trend_percent' => $reviewedTrendPercent,
+            'accepted_trend_percent' => $acceptedTrendPercent,
+            'not_assigned' => $queueStats['not_assigned'],
+            'assigned' => $queueStats['assigned'],
+            'in_review' => $queueStats['in_review'],
             'queue' => $queueStats,
             'top_tracks' => $topTracks,
         ]);
