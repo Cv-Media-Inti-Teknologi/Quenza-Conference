@@ -62,7 +62,7 @@ export default function PricingPage({ auth, ticketPricing = [] }) {
     };
 
     const handleBuyTicket = (category) => {
-        router.post('/admin/api/payment/initiate', {
+        router.post('/api/payment/initiate', {
             type: 'registration',
             payment_method: 'virtual_account',
         }, {

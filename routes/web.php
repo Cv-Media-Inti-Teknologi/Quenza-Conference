@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::get('/papers-review', [PaperReviewController::class, 'index'])->name('admin.papers-review');
 
     // API endpoints for Paper Review
+    Route::post('/api/papers/{id}/assign-reviewer', [PaperReviewController::class, 'assignReviewer']);
     Route::get('/api/papers', [PaperReviewController::class, 'getPapersTable']);
     Route::get('/api/papers/{id}', [PaperReviewController::class, 'getPaperDetail']);
     Route::get('/api/papers/{id}/ai-recommendations', [PaperReviewController::class, 'getAiRecommendations']);

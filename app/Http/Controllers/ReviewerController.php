@@ -113,8 +113,8 @@ class ReviewerController extends Controller
             'track' => $paper->track,
             'similarity_score' => $paper->similarity_score,
             'author' => [
-                'name' => '(Anonymous)',
-                'institution' => '(Hidden)',
+                'name' => $paper->author?->name ?? '(Anonymous)',
+                'institution' => $paper->author?->institution ?? '(Hidden)',
             ],
             'current_review' => $review->status === 'completed' ? [
                 'score' => $review->score,

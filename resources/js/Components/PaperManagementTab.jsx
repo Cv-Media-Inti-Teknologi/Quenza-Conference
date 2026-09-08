@@ -210,8 +210,31 @@ export default function PaperManagementTab() {
         <AiReviewerModal
           paper={selectedAiPaper}
           onClose={() => setShowAiModal(false)}
-          onApprove={(reviewer) => {
-            alert(`Fitur belum aktif: Assign Reviewer ${reviewer.name} ke paper ${selectedAiPaper.id}`);
+          onApprove={async (reviewer) => {
+            try {
+              const paperId = selectedAiPaper.id.replace('P-', '');
+              const response = await fetch(`/admin/api/papers/${paperId}/assign-reviewer`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                },
+                body: JSON.stringify({ reviewer_id: reviewer.id }),
+              });
+
+              const result = await response.json();
+
+              if (response.ok) {
+                alert(`Reviewer ${reviewer.name} berhasil ditugaskan ke paper ${selectedAiPaper.id}`);
+                setShowAiModal(false);
+                fetchPapers();
+              } else {
+                alert(result.message || 'Gagal menugaskan reviewer');
+              }
+            } catch (error) {
+              console.error('Error assigning reviewer:', error);
+              alert('Gagal terhubung ke server. Coba lagi nanti.');
+            }
           }}
         />
       )}

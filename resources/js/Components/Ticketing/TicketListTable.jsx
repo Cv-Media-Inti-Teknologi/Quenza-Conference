@@ -20,7 +20,9 @@ export default function TicketListTable({ initialData }) {
         try {
             const response = await fetch('/admin/api/ticketing/tickets');
             const data = await response.json();
-            setTickets(data.data || []);
+            // Filter out refunded tickets from the list
+            const activeTickets = (data.data || []).filter(t => t.status !== 'refunded');
+            setTickets(activeTickets);
         } catch (error) {
             console.error('Error fetching tickets:', error);
         } finally {

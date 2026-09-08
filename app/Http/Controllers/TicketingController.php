@@ -152,6 +152,12 @@ class TicketingController extends Controller
             'requested_at' => now(),
         ]);
 
+        // Update status transaction jadi refunded supaya tidak muncul lagi di daftar tiket aktif
+        $transaction->update([
+            'status' => 'refunded',
+            'refunded_at' => now(),
+        ]);
+
         return response()->json(['success' => true, 'data' => $refund], 201);
     }
 }
