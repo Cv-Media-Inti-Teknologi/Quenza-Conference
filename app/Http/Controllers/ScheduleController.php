@@ -242,7 +242,7 @@ class ScheduleController extends Controller
                 $validPaperIndex = -1;
                 for ($i = $paperIndex; $i < count($assignedPapers); $i++) {
                     $testPaper = $assignedPapers[$i];
-                    if (!isset($authorTimeSlots[$testPaper->user_id][$timeKey])) {
+                    if (! isset($authorTimeSlots[$testPaper->user_id][$timeKey])) {
                         $validPaperIndex = $i;
                         break;
                     }
@@ -251,6 +251,7 @@ class ScheduleController extends Controller
                 if ($validPaperIndex === -1) {
                     // Semua sisa paper berkonflik di jam ini! Lewati slot ini.
                     $currentTime->addMinutes($slotMinutes);
+
                     continue;
                 }
 
@@ -263,7 +264,7 @@ class ScheduleController extends Controller
 
                 $paper = $assignedPapers[$paperIndex];
                 $authorId = $paper->user_id;
-                
+
                 $authorTimeSlots[$authorId][$timeKey] = $room->id;
 
                 Schedule::create([
@@ -461,7 +462,7 @@ class ScheduleController extends Controller
                 $sessions[] = [
                     'is_empty_slot' => true,
                     'is_break' => false,
-                    'time_slot' => $startTime->format('H:i') . ' - ' . $startTime->copy()->addMinutes($slotMinutes)->format('H:i'),
+                    'time_slot' => $startTime->format('H:i').' - '.$startTime->copy()->addMinutes($slotMinutes)->format('H:i'),
                     'title' => 'Slot Kosong Tersedia',
                 ];
             }
