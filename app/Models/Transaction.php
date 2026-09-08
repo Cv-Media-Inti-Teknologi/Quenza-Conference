@@ -25,6 +25,7 @@ class Transaction extends Model
         'reference_code',
         'expires_at',
         'paid_at',
+        'refunded_at',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class Transaction extends Model
         return [
             'expires_at' => 'datetime',
             'paid_at' => 'datetime',
+            'refunded_at' => 'datetime',
             'amount' => 'decimal:2',
         ];
     }
@@ -59,5 +61,10 @@ class Transaction extends Model
     public function isExpired(): bool
     {
         return $this->status === 'expired';
+    }
+
+    public function isRefunded(): bool
+    {
+        return $this->status === 'refunded';
     }
 }

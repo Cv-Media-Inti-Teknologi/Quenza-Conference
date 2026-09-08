@@ -76,8 +76,8 @@ class PaperReviewController extends Controller
             'status' => $paper->status,
             'submitted_at' => $paper->submitted_at?->format('d/m/Y H:i'),
             'author' => [
-                'name' => '(Anonymous)',
-                'institution' => '(Hidden)',
+                'name' => $paper->author?->name ?? '(Anonymous)',
+                'institution' => $paper->author?->institution ?? '(Hidden)',
             ],
             'reviews' => $paper->reviews->map(function ($review) {
                 return [
@@ -151,6 +151,48 @@ class PaperReviewController extends Controller
 
         return response()->json([
             'data' => $data,
+        ]);
+    }
+
+    public function assignReviewer(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'reviewer_id' => 'required|exists:users,id',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+
+        // Cek apakah reviewer sudah di-assign ke paper ini
+        $alreadyAssigned = PaperReview::where('paper_id', $paper->id)
+            ->where('reviewer_id', $request->input('reviewer_id'))
+            ->exists();
+
+        if ($alreadyAssigned) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reviewer sudah ditugaskan ke paper ini.',
+            ], 422);
+        }
+
+        $review = PaperReview::create([
+            'paper_id' => $paper->id,
+            'reviewer_id' => $request->input('reviewer_id'),
+            'status' => 'in_progress',
+        ]);
+
+        // Update status paper jadi under_review kalau belum
+        if ($paper->status === 'submitted') {
+            $paper->update(['status' => 'under_review']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reviewer berhasil ditugaskan.',
+            'review' => [
+                'id' => $review->id,
+                'reviewer_id' => $review->reviewer_id,
+                'status' => $review->status,
+            ],
         ]);
     }
 
