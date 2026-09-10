@@ -17,6 +17,8 @@ class TicketPricing extends Model
         'category',
         'regular_price',
         'late_price',
+        'currency',
+        'label',
     ];
 
     protected function casts(): array

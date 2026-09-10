@@ -12,7 +12,9 @@ use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PaperReviewController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PortalController;
+use App\Http\Controllers\AuthorPaperController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\RoomController;
@@ -34,8 +36,48 @@ Route::get('/register', [RegisterController::class, 'showRegister'])->name('regi
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// User Portal / Login Success Test Page
+// User Portal
 Route::middleware('auth')->get('/portal', [PortalController::class, 'index'])->name('portal');
+
+// Author routes
+Route::middleware('auth')->prefix('author')->group(function () {
+    Route::get('/papers', [AuthorPaperController::class, 'index'])->name('author.papers');
+    Route::get('/papers/submit', [AuthorPaperController::class, 'create'])->name('author.paper.submit');
+    Route::post('/papers', [AuthorPaperController::class, 'store'])->name('author.paper.store');
+    Route::get('/papers/{id}', [AuthorPaperController::class, 'show'])->name('author.paper.detail');
+    Route::get('/papers/{id}/download', [AuthorPaperController::class, 'download'])->name('author.paper.download');
+    Route::get('/papers/{id}/upload', [AuthorPaperController::class, 'uploadForm'])->name('author.paper.upload');
+    Route::post('/papers/{id}/upload', [AuthorPaperController::class, 'uploadFile'])->name('author.paper.upload.file');
+});
+
+// Participant routes
+Route::middleware('auth')->prefix('user')->group(function () {
+    Route::get('/tickets', [ParticipantController::class, 'index'])->name('participant.tickets');
+    Route::get('/tickets/{transaction}/receipt', [ParticipantController::class, 'receipt'])->name('participant.ticket.receipt');
+});
+
+// Halaman pembayaran (hanya user login)
+Route::middleware('auth')->get('/payment', function () {
+    return Inertia::render('Payment/PaymentPage', [
+        'ticketPricing' => App\Models\TicketPricing::all(),
+        'auth' => [
+            'user' => auth()->user() ? [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'username' => auth()->user()->username,
+                'role' => auth()->user()->role,
+                'avatar' => auth()->user()->avatar,
+            ] : null,
+        ],
+    ]);
+})->name('payment.page');
+
+// API payment initiate — user login biasa (bukan hanya admin)
+Route::middleware('auth')->post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
+
+// Instruksi & konfirmasi pembayaran (milik user sendiri)
+Route::middleware('auth')->get('/payment/{transaction}/waiting', [PaymentController::class, 'waiting'])->name('payment.waiting');
+Route::middleware('auth')->post('/payment/{transaction}/confirm', [PaymentController::class, 'confirmSelfPaid'])->name('payment.confirm');
 
 // User Profile Routes
 Route::middleware('auth')->get('/profile', [ProfileController::class, 'show'])->name('profile');
@@ -47,8 +89,6 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
 
     // CMS Landing Page routes
     Route::get('/cms', [CmsLandingController::class, 'index'])->name('admin.cms');
-    Route::get('/cms-landing', [CmsLandingController::class, 'index'])->name('admin.cms-landing');
-    Route::get('/cms/landing', [CmsLandingController::class, 'index'])->name('admin.cms.landing');
     Route::post('/cms/update', [CmsLandingController::class, 'update'])->name('admin.cms.update');
     Route::put('/cms/update', [CmsLandingController::class, 'update']);
     Route::post('/cms/upload', [CmsLandingController::class, 'uploadMedia'])->name('admin.cms.upload');
@@ -106,8 +146,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('admin')->group(function
     Route::put('/api/finance/refunds/{refund}', [FinanceController::class, 'processRefund']);
     Route::get('/api/finance/export', [FinanceController::class, 'exportReport']);
 
-    // Payment routes
-    Route::post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
+    // Payment routes (admin)
     Route::post('/api/payment/mark-as-paid', [PaymentController::class, 'markAsPaid']);
 
     // Ticketing routes
@@ -131,9 +170,10 @@ Route::middleware(['auth', 'role:reviewer'])->prefix('reviewer')->group(function
     Route::get('/api/reviews', [ReviewerController::class, 'getMyReviews']);
     Route::get('/api/review/{paperId}', [ReviewerController::class, 'getReviewDetail']);
     Route::post('/api/review/{paperId}/submit', [ReviewerController::class, 'submitReview']);
-    Route::get('/api/history', [ReviewerController::class, 'getReviewHistory']);
 });
 
+// Payment gateway webhook (publik — dipanggil oleh gateway Midtrans/Xendit)
 Route::post('/admin/api/webhook/payment', [PaymentController::class, 'handleWebhook']);
-Route::post('/api/ai/check-similarity', [AiSimilarityController::class, 'checkSimilarity']);
-Route::middleware('auth')->post('/api/payment/initiate', [PaymentController::class, 'initiatePayment']);
+
+// AI similarity check (dipakai pipeline AI; auth-protected, bukan publik)
+Route::middleware('auth')->post('/api/ai/check-similarity', [AiSimilarityController::class, 'checkSimilarity']);

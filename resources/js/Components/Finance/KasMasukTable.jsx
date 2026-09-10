@@ -59,7 +59,15 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
         }
     };
 
-    const formatCurrency = (amount) => {
+    const formatCurrency = (amount, currency = 'IDR') => {
+        if (currency === 'USD') {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
@@ -210,7 +218,7 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
                                             </span>
                                         </td>
                                         <td className="py-3.5 px-4 font-quenza-semibold">
-                                            {formatCurrency(transaction.amount)}
+                                            {formatCurrency(transaction.amount, transaction.currency)}
                                         </td>
                                         <td className="py-3.5 px-4">
                                             <span className="quenza-badge-success">Lunas</span>

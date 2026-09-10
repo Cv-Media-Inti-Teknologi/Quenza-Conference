@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AdminLayout from '../Layouts/AdminLayout';
+import PublicLayout from '../Layouts/PublicLayout';
 import { Head } from '@inertiajs/react';
 
 export default function MyReviews() {
@@ -48,7 +48,7 @@ export default function MyReviews() {
     };
 
     return (
-        <AdminLayout title="Review Paper" subtitle="Daftar paper yang ditugaskan untuk direview">
+        <PublicLayout title="Review Paper" subtitle="Daftar paper yang ditugaskan untuk direview">
             <Head title="Review Paper" />
 
             <div className="space-y-6">
@@ -158,6 +158,6 @@ export default function MyReviews() {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </PublicLayout>
     );
 }

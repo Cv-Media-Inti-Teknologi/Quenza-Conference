@@ -91,7 +91,7 @@ export default function Finance({ initialMetrics }) {
     return (
         <AdminLayout
             title="Manajemen Keuangan"
-            subtitle="Verifikasi akun, ubah role, dan kelola akses"
+            subtitle="Kelola pemasukan, pengeluaran, dan laporan keuangan konferensi"
         >
             <Head title="Manajemen Keuangan" />
 

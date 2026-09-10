@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { sanitizeUrl } from '../Utils/sanitize';
+import { getPricingPlans, formatCurrency } from '../Utils/pricing';
 
 export default function LandingPage({ landingData, auth, ticketPricing = [] }) {
     const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -10,80 +11,16 @@ export default function LandingPage({ landingData, auth, ticketPricing = [] }) {
     const dates = Array.isArray(landingData?.important_dates) ? landingData.important_dates : [];
     const sponsors = Array.isArray(landingData?.sponsors) ? landingData.sponsors : [];
 
-    // Use dynamic pricing from ticket_pricing (mirrors /pricing page)
-    const pricingMap = {};
-    ticketPricing.forEach(p => {
-        pricingMap[p.category] = {
-            regular_price: p.regular_price || 0,
-            late_price: p.late_price || 0,
-        };
-    });
+    // Daftar paket dari utilitas bersama (harga dari DB via ticketPricing)
+    const pricingPlans = getPricingPlans(ticketPricing);
 
-    const pricingPlans = [
-        {
-            title: 'Participant',
-            subtitle: 'Offline',
-            description: 'Untuk peserta yang menghadiri konferensi secara langsung.',
-            category: 'participant',
-            prices: [
-                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
-                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
-                { label: 'International', price: 20, isUSD: true },
-            ],
-            features: ['Akses penuh selama konferensi', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
-            primary: false,
-        },
-        {
-            title: 'Presenter',
-            subtitle: 'Pemakalah',
-            description: 'Untuk peserta yang mempresentasikan makalah.',
-            category: 'author',
-            prices: [
-                { label: 'Dosen/Alumni', price: pricingMap['president']?.regular_price || 5000000 },
-                { label: 'Mahasiswa', price: pricingMap['author']?.regular_price || 1500000 },
-                { label: 'International', price: 40, isUSD: true },
-            ],
-            features: ['Akses penuh selama konferensi', 'Kesempatan mempresentasikan makalah', 'Publikasi dalam prosiding', 'Sertifikat sebagai pemakalah', 'Akses ke seluruh sesi dan workshop'],
-            primary: true,
-        },
-        {
-            title: 'Participant',
-            subtitle: 'Online',
-            description: 'Untuk peserta yang mengikuti konferensi secara virtual.',
-            category: 'participant',
-            prices: [
-                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
-                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
-                { label: 'International', price: 10, isUSD: true },
-            ],
-            features: ['Akses penuh konferensi secara daring', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
-            primary: false,
-        },
-    ];
-
-    const formatCurrency = (amount, isUSD = false) => {
-        if (isUSD) return `$ ${amount}`;
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
-    };
-
-    const handleBuyTicket = (category) => {
+    const handleBuyTicket = () => {
         if (!auth?.user) {
             router.visit('/login');
             return;
         }
 
-        router.post('/api/payment/initiate', {
-            type: 'registration',
-            payment_method: 'virtual_account',
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                alert('Pembayaran berhasil diinisiasi! Silakan selesaikan pembayaran melalui metode yang dipilih.');
-            },
-            onError: () => {
-                alert('Gagal memulai pembayaran');
-            },
-        });
+        router.visit('/payment');
     };
 
     const nextSlide = () => {
@@ -252,7 +189,7 @@ export default function LandingPage({ landingData, auth, ticketPricing = [] }) {
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center gap-4 mt-8">
                             <Link
-                                href="/login"
+                                href={auth?.user ? (auth.user.role === 'participant' ? '/payment' : '/author/papers/submit') : '/login'}
                                 className="quenza-btn-secondary text-quenza-large font-quenza-semibold px-8 py-3.5 rounded-quenza-lg text-white shadow-md hover:scale-[1.02] transition-all"
                             >
                                 Submit Paper Anda
@@ -513,7 +450,7 @@ export default function LandingPage({ landingData, auth, ticketPricing = [] }) {
                                         {plan.prices.map((price, idx) => (
                                             <div key={idx} className="my-4">
                                                 <span className={`font-quenza-bold text-gray-900 ${idx === 0 ? 'text-quenza-4xlarge' : idx === 1 ? 'text-quenza-3xlarge' : 'text-quenza-xlarge'}`}>
-                                                    {formatCurrency(price.price, price.isUSD)}
+                                                    {formatCurrency(price.price, price.currency)}
                                                 </span>
                                                 <span className="text-quenza-small text-gray-500"> / {price.label}</span>
                                             </div>

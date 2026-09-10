@@ -168,26 +168,4 @@ class ReviewerController extends Controller
             ],
         ]);
     }
-
-    public function getReviewHistory(): JsonResponse
-    {
-        $reviewerId = auth()->id();
-
-        $history = PaperReview::where('reviewer_id', $reviewerId)
-            ->where('status', 'completed')
-            ->with('paper')
-            ->orderBy('submitted_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $history->map(fn ($review) => [
-                'paper_id' => 'P-'.str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
-                'title' => $review->paper->title,
-                'decision' => $review->decision,
-                'score' => $review->score,
-                'submitted_at' => $review->submitted_at?->format('d/m/Y H:i'),
-                'comment' => $review->comment,
-            ]),
-        ]);
-    }
 }

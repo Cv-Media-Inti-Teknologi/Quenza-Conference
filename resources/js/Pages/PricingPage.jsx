@@ -1,80 +1,10 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { getPricingPlans, formatCurrency } from '../Utils/pricing';
 
 export default function PricingPage({ auth, ticketPricing = [] }) {
-    // Use dynamic pricing if available
-    const pricingMap = {};
-    ticketPricing.forEach(p => {
-        pricingMap[p.category] = {
-            regular_price: p.regular_price || 0,
-            late_price: p.late_price || 0,
-        };
-    });
-
-    const plans = [
-        {
-            title: 'Participant',
-            subtitle: 'Offline',
-            description: 'Untuk peserta yang menghadiri konferensi secara langsung.',
-            category: 'participant',
-            prices: [
-                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
-                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
-                { label: 'International', price: 20, isUSD: true },
-            ],
-            features: ['Akses penuh selama konferensi', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
-            primary: false,
-            buttonLabel: 'Beli Tiket Peserta',
-        },
-        {
-            title: 'Presenter',
-            subtitle: 'Pemakalah',
-            description: 'Untuk peserta yang mempresentasikan makalah.',
-            category: 'author',
-            prices: [
-                { label: 'Dosen/Alumni', price: pricingMap['president']?.regular_price || 5000000 },
-                { label: 'Mahasiswa', price: pricingMap['author']?.regular_price || 1500000 },
-                { label: 'International', price: 40, isUSD: true },
-            ],
-            features: ['Akses penuh selama konferensi', 'Kesempatan mempresentasikan makalah', 'Publikasi dalam prosiding', 'Sertifikat sebagai pemakalah', 'Akses ke seluruh sesi dan workshop'],
-            primary: true,
-            buttonLabel: 'Daftar Sebagai Author',
-        },
-        {
-            title: 'Participant',
-            subtitle: 'Online',
-            description: 'Untuk peserta yang mengikuti konferensi secara virtual.',
-            category: 'participant',
-            prices: [
-                { label: 'Umum', price: pricingMap['participant']?.regular_price || 1500000 },
-                { label: 'Mahasiswa', price: pricingMap['student']?.regular_price || 500000 },
-                { label: 'International', price: 10, isUSD: true },
-            ],
-            features: ['Akses penuh konferensi secara daring', 'Akses ke seluruh sesi dan workshop', 'Sertifikat peserta'],
-            primary: false,
-            buttonLabel: 'Beli Tiket Peserta',
-        },
-    ];
-
-    const formatCurrency = (amount, isUSD = false) => {
-        if (isUSD) return `$ ${amount}`;
-        return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
-    };
-
-    const handleBuyTicket = (category) => {
-        router.post('/api/payment/initiate', {
-            type: 'registration',
-            payment_method: 'virtual_account',
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                alert('Pembayaran berhasil diinisiasi! Silakan selesaikan pembayaran melalui metode yang dipilih.');
-            },
-            onError: () => {
-                alert('Gagal memulai pembayaran');
-            },
-        });
-    };
+    // Daftar paket dari utilitas bersama (harga dari DB via ticketPricing)
+    const plans = getPricingPlans(ticketPricing);
 
     return (
         <div className="min-h-screen bg-quenza-bg text-quenza-text-primary flex flex-col font-sans selection:bg-quenza-primary selection:text-white antialiased">
@@ -171,7 +101,7 @@ export default function PricingPage({ auth, ticketPricing = [] }) {
                                         {plan.prices.map((price, idx) => (
                                             <div key={idx} className="my-4">
                                                 <span className={`font-quenza-bold text-gray-900 ${idx === 0 ? 'text-quenza-4xlarge' : idx === 1 ? 'text-quenza-3xlarge' : 'text-quenza-xlarge'}`}>
-                                                    {formatCurrency(price.price, price.isUSD)}
+                                                    {formatCurrency(price.price, price.currency)}
                                                 </span>
                                                 <span className="text-quenza-small text-gray-500"> / {price.label}</span>
                                             </div>
@@ -189,7 +119,13 @@ export default function PricingPage({ auth, ticketPricing = [] }) {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => handleBuyTicket(plan.category)}
+                                        onClick={() => {
+                                            if (!auth?.user) {
+                                                router.visit('/login');
+                                                return;
+                                            }
+                                            router.visit('/payment');
+                                        }}
                                         className={plan.primary 
                                             ? 'quenza-btn-secondary w-full mt-8 py-3 rounded-quenza-lg font-quenza-bold text-center text-white' 
                                             : 'quenza-btn-outline w-full mt-8 py-3 rounded-quenza-lg font-quenza-semibold text-center'

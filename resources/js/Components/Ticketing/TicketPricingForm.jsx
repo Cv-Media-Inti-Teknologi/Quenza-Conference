@@ -91,22 +91,28 @@ export default function TicketPricingForm({ initialData, onSuccess }) {
                         <thead>
                             <tr className="border-b-2 border-gray-300">
                                 <th className="py-3 px-4 text-quenza-small font-quenza-semibold text-quenza-text-primary">
-                                    Pilih Kategori
+                                    Kategori
                                 </th>
                                 <th className="py-3 px-4 text-quenza-small font-quenza-semibold text-quenza-text-primary">
-                                    Biaya Regular (Rp)
+                                    Biaya Regular
                                 </th>
                                 <th className="py-3 px-4 text-quenza-small font-quenza-semibold text-quenza-text-primary">
-                                    Biaya Late (Rp)
+                                    Biaya Late
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {pricing.map((item, idx) => (
+                            {pricing.map((item, idx) => {
+                                const currency = item.currency || 'IDR';
+                                const isUSD = currency === 'USD';
+                                return (
                                 <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50/50">
                                     <td className="py-4 px-4">
                                         <span className="text-quenza-medium font-quenza-semibold text-quenza-text-primary capitalize">
-                                            {item.category}
+                                            {item.label || item.category}
+                                        </span>
+                                        <span className="block text-quenza-small text-quenza-text-secondary">
+                                            {item.category} • {isUSD ? 'USD ($)' : 'IDR (Rp)'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-4">
@@ -116,12 +122,12 @@ export default function TicketPricingForm({ initialData, onSuccess }) {
                                             onChange={(e) => handlePriceChange(idx, 'regular_price', e.target.value)}
                                             placeholder="0"
                                             min="0"
-                                            step="1000"
+                                            step={isUSD ? '1' : '1000'}
                                             className="w-full quenza-input px-3 py-2 text-quenza-medium"
                                         />
                                         {item.regular_price && (
                                             <p className="text-quenza-small text-quenza-text-secondary mt-1">
-                                                Rp {formatCurrency(item.regular_price)}
+                                                {isUSD ? '$ ' : 'Rp '}{formatCurrency(item.regular_price)}
                                             </p>
                                         )}
                                     </td>
@@ -132,17 +138,18 @@ export default function TicketPricingForm({ initialData, onSuccess }) {
                                             onChange={(e) => handlePriceChange(idx, 'late_price', e.target.value)}
                                             placeholder="0 (opsional)"
                                             min="0"
-                                            step="1000"
+                                            step={isUSD ? '1' : '1000'}
                                             className="w-full quenza-input px-3 py-2 text-quenza-medium"
                                         />
                                         {item.late_price && (
                                             <p className="text-quenza-small text-quenza-text-secondary mt-1">
-                                                Rp {formatCurrency(item.late_price)}
+                                                {isUSD ? '$ ' : 'Rp '}{formatCurrency(item.late_price)}
                                             </p>
                                         )}
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
