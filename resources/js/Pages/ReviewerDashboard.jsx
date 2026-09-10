@@ -1,10 +1,10 @@
 import React from 'react';
-import AdminLayout from '../Layouts/AdminLayout';
+import PublicLayout from '../Layouts/PublicLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function ReviewerDashboard({ pending_count, completed_count, total_assigned, recent_papers }) {
     return (
-        <AdminLayout title="Dashboard Reviewer" subtitle="Kelola review paper yang ditugaskan">
+        <PublicLayout title="Dashboard Reviewer" subtitle="Kelola review paper yang ditugaskan">
             <Head title="Dashboard Reviewer" />
 
             <div className="space-y-6">
@@ -109,6 +109,6 @@ export default function ReviewerDashboard({ pending_count, completed_count, tota
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </PublicLayout>
     );
 }

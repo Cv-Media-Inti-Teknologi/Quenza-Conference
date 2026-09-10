@@ -22,6 +22,9 @@ class Paper extends Model
         'similarity_score',
         'status',
         'submitted_at',
+        'file_path',
+        'file_name',
+        'file_size',
     ];
 
     protected function casts(): array

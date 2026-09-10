@@ -8,10 +8,10 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, uniqueCode 
     const isRefunded = ticket.status === 'refunded';
     const refundedAt = ticket.refunded_at ? new Date(ticket.refunded_at) : null;
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('id-ID', {
+    const formatCurrency = (amount, currency = 'IDR') => {
+        return new Intl.NumberFormat(currency === 'USD' ? 'en-US' : 'id-ID', {
             style: 'currency',
-            currency: 'IDR',
+            currency: currency,
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(amount);
@@ -149,7 +149,7 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, uniqueCode 
                             Nominal:
                         </p>
                         <p className="text-quenza-xlarge font-quenza-bold text-quenza-text-primary mt-1">
-                            {formatCurrency(ticket.amount)}
+                            {formatCurrency(ticket.amount, ticket.currency)}
                         </p>
                     </div>
 
