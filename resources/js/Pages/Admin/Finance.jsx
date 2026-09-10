@@ -54,14 +54,29 @@ export default function Finance({ initialMetrics }) {
         try {
             const params = new URLSearchParams({ ...filters, format });
             const response = await fetch(`/admin/api/finance/export?${params}`);
-            const data = await response.json();
-            
+
+            if (!response.ok) {
+                throw new Error('Gagal mengexport laporan');
+            }
+
             if (format === 'excel') {
-                showToast('Export Excel dalam proses...', 'info');
+                // Response CSV - download file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `laporan-keuangan-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showToast('Laporan Excel (CSV) berhasil diunduh', 'success');
             } else {
-                showToast('Export PDF dalam proses...', 'info');
+                // PDF - masih placeholder, tampilkan notifikasi
+                showToast('Export PDF masih dalam pengembangan. Gunakan Excel untuk saat ini.', 'info');
             }
         } catch (error) {
+            console.error('Export error:', error);
             showToast('Gagal mengexport laporan', 'error');
         }
     };
@@ -76,7 +91,7 @@ export default function Finance({ initialMetrics }) {
     return (
         <AdminLayout
             title="Manajemen Keuangan"
-            subtitle="Verifikasi akun, ubah role, dan kelola akses"
+            subtitle="Kelola pemasukan, pengeluaran, dan laporan keuangan konferensi"
         >
             <Head title="Manajemen Keuangan" />
 

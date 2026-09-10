@@ -7,6 +7,36 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
     const [showFormModal, setShowFormModal] = useState(false);
     const [pagination, setPagination] = useState({ current_page: 1, total: 0 });
 
+    // Convert preset filter value ke tanggal aktual
+    useEffect(() => {
+        if (filters.startDate && !filters.startDate.includes('-')) {
+            const now = new Date();
+            let startDate;
+            switch (filters.startDate) {
+                case '1month':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    break;
+                case '2months':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+                    break;
+                case '6months':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    break;
+                case '1year':
+                    startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+                    break;
+                default:
+                    return;
+            }
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            setFilters(prev => ({
+                ...prev,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+            }));
+        }
+    }, [filters.startDate]);
+
     useEffect(() => {
         fetchTransactions();
     }, [filters]);
@@ -29,7 +59,15 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
         }
     };
 
-    const formatCurrency = (amount) => {
+    const formatCurrency = (amount, currency = 'IDR') => {
+        if (currency === 'USD') {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(amount);
+        }
         return new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
@@ -119,16 +157,17 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
                             <label className="block text-quenza-small font-quenza-medium text-quenza-text-primary mb-1.5">
                                 1 Bulan Terakhir
                             </label>
-                            <select
-                                value={filters.startDate || ''}
-                                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                className="w-full quenza-input px-3 py-2 text-quenza-small"
-                            >
-                                <option value="">1 Bulan Terakhir</option>
-                                <option value="">2 Bulan Terakhir</option>
-                                <option value="">6 Bulan Terakhir</option>
-                                <option value="">1 Tahun Terakhir</option>
-                            </select>
+                        <select
+                            value={filters.startDate || ''}
+                            onChange={(e) => setFilters({ ...filters, startDate: e.target.value, endDate: '' })}
+                            className="w-full quenza-input px-3 py-2 text-quenza-small"
+                        >
+                            <option value="">Semua Waktu</option>
+                            <option value="1month">1 Bulan Terakhir</option>
+                            <option value="2months">2 Bulan Terakhir</option>
+                            <option value="6months">6 Bulan Terakhir</option>
+                            <option value="1year">1 Tahun Terakhir</option>
+                        </select>
                         </div>
                     </div>
 
@@ -146,6 +185,7 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
                         <thead>
                             <tr className="border-b border-gray-200 text-quenza-small text-quenza-text-secondary uppercase tracking-wider font-quenza-semibold bg-gray-50/75">
                                 <th className="py-3.5 px-4">Tanggal</th>
+                                <th className="py-3.5 px-4">Peserta</th>
                                 <th className="py-3.5 px-4">Deskripsi</th>
                                 <th className="py-3.5 px-4">Kategori</th>
                                 <th className="py-3.5 px-4">Nominal</th>
@@ -170,6 +210,7 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
                                 transactions.map((transaction, idx) => (
                                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                                         <td className="py-3.5 px-4 text-quenza-small">{formatDate(transaction.paid_at)}</td>
+                                        <td className="py-3.5 px-4 text-quenza-small">{transaction.user?.name || '-'}</td>
                                         <td className="py-3.5 px-4">{transaction.description || '-'}</td>
                                         <td className="py-3.5 px-4">
                                             <span className="quenza-badge-success">
@@ -177,7 +218,7 @@ export default function KasMasukTable({ filters, setFilters, onSuccess }) {
                                             </span>
                                         </td>
                                         <td className="py-3.5 px-4 font-quenza-semibold">
-                                            {formatCurrency(transaction.amount)}
+                                            {formatCurrency(transaction.amount, transaction.currency)}
                                         </td>
                                         <td className="py-3.5 px-4">
                                             <span className="quenza-badge-success">Lunas</span>

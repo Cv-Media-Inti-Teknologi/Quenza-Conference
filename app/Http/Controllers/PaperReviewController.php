@@ -76,8 +76,8 @@ class PaperReviewController extends Controller
             'status' => $paper->status,
             'submitted_at' => $paper->submitted_at?->format('d/m/Y H:i'),
             'author' => [
-                'name' => '(Anonymous)',
-                'institution' => '(Hidden)',
+                'name' => $paper->author?->name ?? '(Anonymous)',
+                'institution' => $paper->author?->institution ?? '(Hidden)',
             ],
             'reviews' => $paper->reviews->map(function ($review) {
                 return [
@@ -154,54 +154,93 @@ class PaperReviewController extends Controller
         ]);
     }
 
+    public function assignReviewer(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'reviewer_id' => 'required|exists:users,id',
+        ]);
+
+        $paper = Paper::findOrFail($id);
+
+        // Cek apakah reviewer sudah di-assign ke paper ini
+        $alreadyAssigned = PaperReview::where('paper_id', $paper->id)
+            ->where('reviewer_id', $request->input('reviewer_id'))
+            ->exists();
+
+        if ($alreadyAssigned) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reviewer sudah ditugaskan ke paper ini.',
+            ], 422);
+        }
+
+        $review = PaperReview::create([
+            'paper_id' => $paper->id,
+            'reviewer_id' => $request->input('reviewer_id'),
+            'status' => 'in_progress',
+        ]);
+
+        // Update status paper jadi under_review kalau belum
+        if ($paper->status === 'submitted') {
+            $paper->update(['status' => 'under_review']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reviewer berhasil ditugaskan.',
+            'review' => [
+                'id' => $review->id,
+                'reviewer_id' => $review->reviewer_id,
+                'status' => $review->status,
+            ],
+        ]);
+    }
+
     public function getDashboardMetrics(Request $request): JsonResponse
     {
-        $period = $request->input('period', 'month');
-        $daysBack = match ($period) {
-            'today' => 1,
-            'week' => 7,
-            'month' => 30,
-            default => 30,
-        };
-
-        $submissionTrend = [
-            ['date' => 'Mon', 'count' => 12],
-            ['date' => 'Tue', 'count' => 19],
-            ['date' => 'Wed', 'count' => 8],
-            ['date' => 'Thu', 'count' => 15],
-            ['date' => 'Fri', 'count' => 22],
-        ];
-
-        $paperReviewedTrend = [
-            ['date' => 'Mon', 'count' => 5],
-            ['date' => 'Tue', 'count' => 8],
-            ['date' => 'Wed', 'count' => 3],
-            ['date' => 'Thu', 'count' => 12],
-            ['date' => 'Fri', 'count' => 10],
-        ];
-
-        $acceptedTrend = [
-            ['date' => 'Mon', 'count' => 2],
-            ['date' => 'Tue', 'count' => 3],
-            ['date' => 'Wed', 'count' => 1],
-            ['date' => 'Thu', 'count' => 4],
-            ['date' => 'Fri', 'count' => 5],
-        ];
-
         $totalSubmissions = Paper::count();
         $totalAccepted = Paper::where('status', 'accepted')->count();
         $totalReviewed = PaperReview::whereNotNull('submitted_at')->count();
+        
+        // Dynamic Trends (Last 7 days)
+        $submissionTrend = Paper::selectRaw("strftime('%d/%m', created_at) as date, count(*) as count")
+            ->where('created_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('created_at')
+            ->get();
+
+        $paperReviewedTrend = PaperReview::selectRaw("strftime('%d/%m', submitted_at) as date, count(*) as count")
+            ->whereNotNull('submitted_at')
+            ->where('submitted_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('submitted_at')
+            ->get();
+
+        // Hitung trend persentase (compared to previous period)
+        $prevSubmission = Paper::where('created_at', '<', now()->subDays(7))->count();
+        $totalTrendPercent = $prevSubmission > 0 ? round((($totalSubmissions - $prevSubmission) / $prevSubmission) * 100, 1) : 0;
+
+        $prevReviewed = PaperReview::where('submitted_at', '<', now()->subDays(7))->whereNotNull('submitted_at')->count();
+        $reviewedTrendPercent = $prevReviewed > 0 ? round((($totalReviewed - $prevReviewed) / $prevReviewed) * 100, 1) : 0;
+
+        // Accepted trend (last 7 days vs previous)
+        $acceptedTrends = Paper::selectRaw("strftime('%d/%m', created_at) as date, count(*) as count")
+            ->where('status', 'accepted')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('created_at')
+            ->get();
+
+        $prevAccepted = Paper::where('status', 'accepted')->where('created_at', '<', now()->subDays(7))->count();
+        $acceptedTrendPercent = $prevAccepted > 0 ? round((($totalAccepted - $prevAccepted) / $prevAccepted) * 100, 1) : 0;
+
         $topTracks = Paper::selectRaw('track, COUNT(*) as count')
+            ->whereNotNull('track')
             ->groupBy('track')
             ->orderByDesc('count')
             ->limit(3)
             ->get()
-            ->map(function ($item) {
-                return [
-                    'track' => $item->track,
-                    'count' => $item->count,
-                ];
-            });
+            ->map(fn($item) => ['name' => $item->track, 'count' => $item->count]);
 
         $queueStats = [
             'not_assigned' => Paper::where('status', 'submitted')->count(),
@@ -212,14 +251,17 @@ class PaperReviewController extends Controller
         return response()->json([
             'submission_trend' => $submissionTrend,
             'paper_reviewed_trend' => $paperReviewedTrend,
-            'accepted_trend' => $acceptedTrend,
+            'accepted_trend' => $acceptedTrends,
             'total_submissions' => $totalSubmissions,
             'total_accepted' => $totalAccepted,
-            'total_trend_percent' => '+18%',
-            'total_reviewed' => $totalReviewed,
-            'reviewed_trend_percent' => '+5%',
             'total_accepted_count' => $totalAccepted,
-            'accepted_trend_percent' => '+8%',
+            'total_reviewed' => $totalReviewed,
+            'total_trend_percent' => $totalTrendPercent,
+            'reviewed_trend_percent' => $reviewedTrendPercent,
+            'accepted_trend_percent' => $acceptedTrendPercent,
+            'not_assigned' => $queueStats['not_assigned'],
+            'assigned' => $queueStats['assigned'],
+            'in_review' => $queueStats['in_review'],
             'queue' => $queueStats,
             'top_tracks' => $topTracks,
         ]);
