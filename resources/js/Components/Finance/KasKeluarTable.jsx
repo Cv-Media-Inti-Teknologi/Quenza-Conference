@@ -7,6 +7,36 @@ export default function KasKeluarTable({ filters, setFilters, onSuccess }) {
     const [showFormModal, setShowFormModal] = useState(false);
     const [pagination, setPagination] = useState({ current_page: 1, total: 0 });
 
+    // Convert preset filter value ke tanggal aktual
+    useEffect(() => {
+        if (filters.startDate && !filters.startDate.includes('-')) {
+            const now = new Date();
+            let startDate;
+            switch (filters.startDate) {
+                case '1month':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    break;
+                case '2months':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+                    break;
+                case '6months':
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    break;
+                case '1year':
+                    startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+                    break;
+                default:
+                    return;
+            }
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            setFilters(prev => ({
+                ...prev,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0],
+            }));
+        }
+    }, [filters.startDate]);
+
     useEffect(() => {
         fetchExpenses();
     }, [filters]);
@@ -132,13 +162,14 @@ export default function KasKeluarTable({ filters, setFilters, onSuccess }) {
                         </label>
                         <select
                             value={filters.startDate || ''}
-                            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+                            onChange={(e) => setFilters({ ...filters, startDate: e.target.value, endDate: '' })}
                             className="w-full quenza-input px-3 py-2 text-quenza-small"
                         >
-                            <option value="">1 Bulan Terakhir</option>
-                            <option value="">2 Bulan Terakhir</option>
-                            <option value="">6 Bulan Terakhir</option>
-                            <option value="">1 Tahun Terakhir</option>
+                            <option value="">Semua Waktu</option>
+                            <option value="1month">1 Bulan Terakhir</option>
+                            <option value="2months">2 Bulan Terakhir</option>
+                            <option value="6months">6 Bulan Terakhir</option>
+                            <option value="1year">1 Tahun Terakhir</option>
                         </select>
                     </div>
                 </div>

@@ -188,11 +188,29 @@ class FinanceController extends Controller
             'amount' => 'required|numeric|min:0',
         ]);
 
+        $transaction = Transaction::findOrFail($validated['transaction_id']);
+
+        // Validasi: amount tidak boleh lebih dari saldo transaksi
+        if ($validated['amount'] > $transaction->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Jumlah refund tidak boleh lebih dari nominal transaksi.',
+            ], 422);
+        }
+
         $refund = Refund::create([
-            ...$validated,
+            'transaction_id' => $transaction->id,
+            'reason' => $validated['reason'],
+            'amount' => $validated['amount'],
             'status' => 'requested',
             'requested_by' => auth()->id(),
             'requested_at' => now(),
+        ]);
+
+        // Update status transaction jadi refunded (konsisten dengan TicketingController)
+        $transaction->update([
+            'status' => 'refunded',
+            'refunded_at' => now(),
         ]);
 
         return response()->json(['success' => true, 'data' => $refund], 201);
@@ -247,10 +265,52 @@ class FinanceController extends Controller
 
     private function exportExcel(array $data)
     {
-        return response()->json([
-            'message' => 'Export Excel functionality akan diimplementasikan dengan library seperti Maatwebsite\Excel',
-            'data' => $data,
-        ]);
+        $filename = 'laporan-keuangan-'.Carbon::now()->format('Ymd_His').'.csv';
+
+        $csv = fopen('php://temp', 'r+');
+
+        // Header
+        fputcsv($csv, ['No', 'Tipe', 'Deskripsi', 'Kategori / Status', 'Nominal (IDR)', 'Metode Pembayaran', 'Kode Referensi', 'Tanggal', 'User']);
+
+        $no = 1;
+
+        // Income - Transactions
+        foreach ($data['transactions'] as $t) {
+            fputcsv($csv, [
+                $no++,
+                'Pemasukan ('.$t->type.')',
+                $t->description ?? '-',
+                ucfirst($t->type),
+                number_format((float) $t->amount, 0, ',', '.'),
+                $t->payment_method ?? '-',
+                $t->reference_code ?? '-',
+                $t->paid_at ? $t->paid_at->format('d/m/Y H:i') : '-',
+                $t->user?->name ?? '-',
+            ]);
+        }
+
+        // Expense
+        foreach ($data['expenses'] as $e) {
+            fputcsv($csv, [
+                $no++,
+                'Pengeluaran ('.$e->category.')',
+                $e->description ?? '-',
+                ucfirst($e->category),
+                '-'.number_format((float) $e->amount, 0, ',', '.'),
+                '-', '-', '-',
+                $e->createdBy?->name ?? '-',
+            ]);
+        }
+
+        rewind($csv);
+        $csvContent = stream_get_contents($csv);
+        fclose($csv);
+
+        return response()->streamDownload(
+            fn() => print $csvContent,
+            $filename,
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        );
     }
 
     public function getFinanceChart(Request $request)

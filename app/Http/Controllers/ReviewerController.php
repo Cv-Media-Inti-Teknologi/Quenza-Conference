@@ -113,8 +113,8 @@ class ReviewerController extends Controller
             'track' => $paper->track,
             'similarity_score' => $paper->similarity_score,
             'author' => [
-                'name' => '(Anonymous)',
-                'institution' => '(Hidden)',
+                'name' => $paper->author?->name ?? '(Anonymous)',
+                'institution' => $paper->author?->institution ?? '(Hidden)',
             ],
             'current_review' => $review->status === 'completed' ? [
                 'score' => $review->score,
@@ -166,28 +166,6 @@ class ReviewerController extends Controller
                 'decision' => $review->decision,
                 'submitted_at' => $review->submitted_at?->format('d/m/Y H:i'),
             ],
-        ]);
-    }
-
-    public function getReviewHistory(): JsonResponse
-    {
-        $reviewerId = auth()->id();
-
-        $history = PaperReview::where('reviewer_id', $reviewerId)
-            ->where('status', 'completed')
-            ->with('paper')
-            ->orderBy('submitted_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'data' => $history->map(fn ($review) => [
-                'paper_id' => 'P-'.str_pad($review->paper->id, 3, '0', STR_PAD_LEFT),
-                'title' => $review->paper->title,
-                'decision' => $review->decision,
-                'score' => $review->score,
-                'submitted_at' => $review->submitted_at?->format('d/m/Y H:i'),
-                'comment' => $review->comment,
-            ]),
         ]);
     }
 }

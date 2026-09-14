@@ -17,7 +17,7 @@ class PortalController extends Controller
     {
         $user = $request->user();
 
-        return Inertia::render('Portal/Dashboard', [
+        return Inertia::render('UserDashboard', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,

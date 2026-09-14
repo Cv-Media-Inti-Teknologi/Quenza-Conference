@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AdminLayout from '../Layouts/AdminLayout';
+import PublicLayout from '../Layouts/PublicLayout';
 import ReviewForm from '../Components/ReviewForm';
 import { Head } from '@inertiajs/react';
 
@@ -27,21 +27,21 @@ export default function ReviewDetail({ paperId }) {
     }, [paperId]);
 
     if (loading) return (
-        <AdminLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
+        <PublicLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
             <div className="text-center py-8 text-quenza-text-secondary">Loading paper...</div>
-        </AdminLayout>
+        </PublicLayout>
     );
 
     if (error || !paper) return (
-        <AdminLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
+        <PublicLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
             <div className="text-center py-8 text-quenza-danger">
                 {error || 'Paper not found or you don\'t have access'}
             </div>
-        </AdminLayout>
+        </PublicLayout>
     );
 
     return (
-        <AdminLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
+        <PublicLayout title="Review Paper" subtitle="Nilai dan berikan feedback untuk paper">
             <Head title="Review Paper" />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -116,6 +116,6 @@ export default function ReviewDetail({ paperId }) {
                     <ReviewForm paper={paper} currentReview={paper.current_review} />
                 </div>
             </div>
-        </AdminLayout>
+        </PublicLayout>
     );
 }

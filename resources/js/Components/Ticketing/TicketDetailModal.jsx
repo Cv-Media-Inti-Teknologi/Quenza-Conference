@@ -5,10 +5,13 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, uniqueCode 
     const [refundReason, setRefundReason] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('id-ID', {
+    const isRefunded = ticket.status === 'refunded';
+    const refundedAt = ticket.refunded_at ? new Date(ticket.refunded_at) : null;
+
+    const formatCurrency = (amount, currency = 'IDR') => {
+        return new Intl.NumberFormat(currency === 'USD' ? 'en-US' : 'id-ID', {
             style: 'currency',
-            currency: 'IDR',
+            currency: currency,
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
         }).format(amount);
@@ -146,17 +149,26 @@ export default function TicketDetailModal({ isOpen, onClose, ticket, uniqueCode 
                             Nominal:
                         </p>
                         <p className="text-quenza-xlarge font-quenza-bold text-quenza-text-primary mt-1">
-                            {formatCurrency(ticket.amount)}
+                            {formatCurrency(ticket.amount, ticket.currency)}
                         </p>
                     </div>
 
                     {!showRefundForm ? (
-                        <button
-                            onClick={() => setShowRefundForm(true)}
-                            className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white py-3 rounded-quenza-md font-quenza-semibold text-quenza-medium transition-colors"
-                        >
-                            Refund Dana
-                        </button>
+                        isRefunded ? (
+                            <div className="w-full mt-6 bg-gray-100 text-gray-700 py-3 rounded-quenza-md font-quenza-semibold text-quenza-medium text-center">
+                                <p className="mb-1">Tiket sudah di-refund</p>
+                                <p className="text-quenza-small text-gray-500">
+                                    Refunded pada: {refundedAt ? refundedAt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                </p>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setShowRefundForm(true)}
+                                className="w-full mt-6 bg-red-600 hover:bg-red-700 text-white py-3 rounded-quenza-md font-quenza-semibold text-quenza-medium transition-colors"
+                            >
+                                Refund Dana
+                            </button>
+                        )
                     ) : (
                         <form onSubmit={handleRefundSubmit} className="mt-6 space-y-3 border-t border-gray-200 pt-4">
                             <div>

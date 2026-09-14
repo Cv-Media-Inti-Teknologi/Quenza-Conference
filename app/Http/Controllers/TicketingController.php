@@ -66,14 +66,20 @@ class TicketingController extends Controller
 
     public function getTicketList(Request $request)
     {
-        $query = Transaction::with('user')
-            ->where('status', 'paid');
+        $query = Transaction::with('user');
+
+        // Filter status: default hanya paid (penjualan valid);
+        // 'pending' untuk antrean konfirmasi, 'all' untuk semua status.
+        $status = $request->query('status', 'paid');
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
 
         if ($request->has('type') && $request->query('type') !== 'all') {
             $query->where('type', $request->query('type'));
         }
 
-        $tickets = $query->orderBy('paid_at', 'desc')->paginate(10);
+        $tickets = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return response()->json($tickets);
     }
@@ -150,6 +156,12 @@ class TicketingController extends Controller
             'status' => 'requested',
             'requested_by' => auth()->id(),
             'requested_at' => now(),
+        ]);
+
+        // Update status transaction jadi refunded supaya tidak muncul lagi di daftar tiket aktif
+        $transaction->update([
+            'status' => 'refunded',
+            'refunded_at' => now(),
         ]);
 
         return response()->json(['success' => true, 'data' => $refund], 201);

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('ai:send-reminders')->dailyAt('08:00');
+
+// Auto-expire transaksi pending yang lewat 24 jam (sesuai PRD)
+Schedule::command('transactions:expire-pending')->everyFifteenMinutes();

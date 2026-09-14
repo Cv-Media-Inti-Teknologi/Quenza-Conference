@@ -105,6 +105,7 @@ export default function PengembalianDanaTable({ filters, setFilters, onSuccess }
                         <thead>
                             <tr className="border-b border-gray-200 text-quenza-small text-quenza-text-secondary uppercase tracking-wider font-quenza-semibold bg-gray-50/75">
                                 <th className="py-3.5 px-4">Tanggal Diminta</th>
+                                <th className="py-3.5 px-4">Peserta</th>
                                 <th className="py-3.5 px-4">Alasan</th>
                                 <th className="py-3.5 px-4">Nominal</th>
                                 <th className="py-3.5 px-4">Status</th>
@@ -129,6 +130,9 @@ export default function PengembalianDanaTable({ filters, setFilters, onSuccess }
                                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                                         <td className="py-3.5 px-4 text-quenza-small">
                                             {formatDate(refund.requested_at)}
+                                        </td>
+                                        <td className="py-3.5 px-4 text-quenza-small">
+                                            {refund.requestedBy?.name || '-'}
                                         </td>
                                         <td className="py-3.5 px-4 text-quenza-small">
                                             {refund.reason}

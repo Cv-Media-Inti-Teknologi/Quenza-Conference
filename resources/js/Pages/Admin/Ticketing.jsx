@@ -78,7 +78,6 @@ export default function Ticketing({ ticketPricing, ticketList }) {
                 {activeTab === 'daftar_tiket' && (
                     <TicketListTable
                         key={refreshKey}
-                        initialData={ticketList}
                     />
                 )}
 
