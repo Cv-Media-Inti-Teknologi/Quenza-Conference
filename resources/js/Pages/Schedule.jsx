@@ -8,16 +8,18 @@ import { Head, usePage } from '@inertiajs/react';
 
 export default function Schedule({ rooms = [], scheduleParams = {}, allocations = [], sessionMetadata = {} }) {
     const { flash } = usePage().props;
-    const [selectedRoom, setSelectedRoom] = useState(null);
+    const [selectedRoomId, setSelectedRoomId] = useState(null);
     const [activeMethod, setActiveMethod] = useState(null);
 
+    const selectedRoom = rooms.find(r => r.id === selectedRoomId) || null;
+
     const handleSelectRoom = (room) => {
-        setSelectedRoom(prev => {
-            if (prev?.id === room.id) {
+        setSelectedRoomId(prevId => {
+            if (prevId === room?.id) {
                 setActiveMethod(null);
                 return null;
             }
-            return room;
+            return room?.id ?? null;
         });
     };
 
