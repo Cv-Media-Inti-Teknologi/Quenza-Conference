@@ -89,4 +89,28 @@ class RoomTest extends TestCase
             'id' => $room->id,
         ]);
     }
+
+    public function test_rejects_zero_capacity(): void
+    {
+        $response = $this->actingAs($this->superAdmin)->post('/admin/schedule/room', [
+            'name' => 'Ruang Nol',
+            'location' => 'Lantai 1',
+            'capacity' => 0,
+            'topic' => 'IoT',
+        ]);
+
+        $response->assertSessionHasErrors(['capacity']);
+    }
+
+    public function test_rejects_decimal_capacity(): void
+    {
+        $response = $this->actingAs($this->superAdmin)->post('/admin/schedule/room', [
+            'name' => 'Ruang Desimal',
+            'location' => 'Lantai 1',
+            'capacity' => '12.5',
+            'topic' => 'IoT',
+        ]);
+
+        $response->assertSessionHasErrors(['capacity']);
+    }
 }
