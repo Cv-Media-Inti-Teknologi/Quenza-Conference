@@ -18,13 +18,17 @@ class RoomController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
-            'capacity' => ['required'],
+            'capacity' => ['required', 'integer', 'min:1'],
             'topic' => ['required', 'string', 'max:255'],
+        ], [
+            'capacity.required' => 'Kapasitas wajib diisi',
+            'capacity.integer' => 'Kapasitas harus berupa bilangan bulat (tidak boleh desimal)',
+            'capacity.numeric' => 'Kapasitas harus berupa angka',
+            'capacity.gt' => 'Kapasitas harus lebih dari 0',
+            'capacity.min' => 'Kapasitas harus lebih dari 0',
         ]);
 
-        if (is_string($validated['capacity'])) {
-            $validated['capacity'] = (int) (preg_replace('/\D/', '', $validated['capacity']) ?: 0);
-        }
+        $validated['capacity'] = (int) $validated['capacity'];
 
         Room::create($validated);
 
@@ -39,13 +43,17 @@ class RoomController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
-            'capacity' => ['required'],
+            'capacity' => ['required', 'integer', 'min:1'],
             'topic' => ['required', 'string', 'max:255'],
+        ], [
+            'capacity.required' => 'Kapasitas wajib diisi',
+            'capacity.integer' => 'Kapasitas harus berupa bilangan bulat (tidak boleh desimal)',
+            'capacity.numeric' => 'Kapasitas harus berupa angka',
+            'capacity.gt' => 'Kapasitas harus lebih dari 0',
+            'capacity.min' => 'Kapasitas harus lebih dari 0',
         ]);
 
-        if (is_string($validated['capacity'])) {
-            $validated['capacity'] = (int) (preg_replace('/\D/', '', $validated['capacity']) ?: 0);
-        }
+        $validated['capacity'] = (int) $validated['capacity'];
 
         $room->update($validated);
 

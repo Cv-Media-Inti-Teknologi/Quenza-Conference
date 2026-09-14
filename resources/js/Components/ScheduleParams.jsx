@@ -8,17 +8,20 @@ export default function ScheduleParams({ initialParams = {}, selectedRoom = null
     const [formValidationError, setFormValidationError] = useState(null);
 
     const defaultValues = useMemo(() => {
-        const setting = selectedRoom?.event_setting;
+        const setting = selectedRoom?.event_setting || selectedRoom?.eventSetting || initialParams;
+        const breakDur = setting?.break_duration_minutes !== undefined && setting?.break_duration_minutes !== null ? setting.break_duration_minutes : setting?.break_duration;
+        const presDur = setting?.presentation_duration_minutes !== undefined && setting?.presentation_duration_minutes !== null ? setting.presentation_duration_minutes : setting?.presenter_duration;
+
         return {
             room_id: selectedRoom ? selectedRoom.id : '',
             event_days: setting?.event_days !== undefined && setting?.event_days !== null && setting?.event_days !== '' ? String(setting.event_days) : '',
             start_time: setting?.start_time ? String(setting.start_time).substring(0, 5) : '',
             end_time: setting?.end_time ? String(setting.end_time).substring(0, 5) : '',
-            break_duration: setting?.break_duration_minutes !== undefined && setting?.break_duration_minutes !== null && setting?.break_duration_minutes !== '' ? String(setting.break_duration_minutes) : '',
-            presenter_duration: setting?.presentation_duration_minutes !== undefined && setting?.presentation_duration_minutes !== null && setting?.presentation_duration_minutes !== '' ? String(setting.presentation_duration_minutes) : '',
+            break_duration: breakDur !== undefined && breakDur !== null && breakDur !== '' ? String(breakDur) : '',
+            presenter_duration: presDur !== undefined && presDur !== null && presDur !== '' ? String(presDur) : '',
             presenter_count: setting?.presenter_count !== undefined && setting?.presenter_count !== null && setting?.presenter_count !== '' ? String(setting.presenter_count) : ''
         };
-    }, [selectedRoom]);
+    }, [selectedRoom, initialParams]);
 
     const { data, setData, post, processing } = useForm(defaultValues);
 
@@ -107,6 +110,18 @@ export default function ScheduleParams({ initialParams = {}, selectedRoom = null
         e.preventDefault();
         if (!isAllFieldsFilled) {
             setFormValidationError('Semua field wajib diisi lengkap.');
+            return;
+        }
+
+        const days = parseInt(data.event_days, 10);
+        if (isNaN(days) || days <= 0) {
+            setFormValidationError('Jumlah Hari harus lebih dari 0');
+            return;
+        }
+
+        const presDuration = parseInt(data.presenter_duration, 10);
+        if (isNaN(presDuration) || presDuration < 3) {
+            setFormValidationError('Durasi/Presenter minimal 3 menit');
             return;
         }
 
@@ -330,7 +345,7 @@ export default function ScheduleParams({ initialParams = {}, selectedRoom = null
                         <div className="relative flex items-center">
                             <input 
                                 type="number" 
-                                min="1"
+                                min="3"
                                 step="1"
                                 required
                                 value={data.presenter_duration}
@@ -342,7 +357,7 @@ export default function ScheduleParams({ initialParams = {}, selectedRoom = null
                             <div className="absolute right-1.5 flex flex-col gap-0.5 select-none">
                                 <button
                                     type="button"
-                                    onClick={() => handleNumberStep('presenter_duration', 1, 1, 5)}
+                                    onClick={() => handleNumberStep('presenter_duration', 1, 3, 5)}
                                     className="w-7 h-4 flex items-center justify-center rounded bg-gray-100 hover:bg-[#0b603a] hover:text-white text-gray-600 text-[10px] transition cursor-pointer"
                                     title="Tambah 5 menit"
                                 >
@@ -350,7 +365,7 @@ export default function ScheduleParams({ initialParams = {}, selectedRoom = null
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => handleNumberStep('presenter_duration', -1, 1, 5)}
+                                    onClick={() => handleNumberStep('presenter_duration', -1, 3, 5)}
                                     className="w-7 h-4 flex items-center justify-center rounded bg-gray-100 hover:bg-[#0b603a] hover:text-white text-gray-600 text-[10px] transition cursor-pointer"
                                     title="Kurang 5 menit"
                                 >

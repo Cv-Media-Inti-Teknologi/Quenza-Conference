@@ -7,7 +7,7 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
     const [deletingRoom, setDeletingRoom] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const { data, setData, post, put, processing, errors, reset, clearErrors } = useForm({
+    const { data, setData, post, put, processing, errors, setError, reset, clearErrors } = useForm({
         name: '',
         location: '',
         capacity: '',
@@ -35,7 +35,7 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
         setData({
             name: room.name || '',
             location: room.location || '',
-            capacity: String(room.capacity || '').replace(/\D/g, ''),
+            capacity: room.capacity !== undefined && room.capacity !== null ? String(room.capacity) : '',
             topic: room.topic || ''
         });
         setShowModal(true);
@@ -71,19 +71,47 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
         });
     };
 
+    const getCapacityWarning = (val) => {
+        if (val === '' || val === null || val === undefined) return null;
+        const strVal = String(val).trim();
+        if (strVal === '') return null;
+        if (strVal.includes('.') || strVal.includes(',') || !Number.isInteger(Number(strVal))) {
+            return 'Kapasitas harus berupa bilangan bulat (tidak boleh desimal)';
+        }
+        const num = Number(strVal);
+        if (isNaN(num) || num <= 0) {
+            return 'Kapasitas harus lebih dari 0';
+        }
+        return null;
+    };
+
+    const capacityWarning = getCapacityWarning(data.capacity);
+
     const isFormValid = Boolean(
         data.name && String(data.name).trim() !== '' &&
         data.location && String(data.location).trim() !== '' &&
-        data.capacity !== '' && data.capacity !== null && data.capacity !== undefined &&
+        data.capacity !== '' && !capacityWarning &&
         data.topic && String(data.topic).trim() !== ''
     );
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        const warning = getCapacityWarning(data.capacity);
+        if (warning) {
+            setError('capacity', warning);
+            return;
+        }
+
         if (!isFormValid) return;
 
+        const submitData = {
+            ...data,
+            capacity: String(data.capacity)
+        };
+
         if (editingRoom) {
-            put(`/admin/schedule/room/${editingRoom.id}`, {
+            router.put(`/admin/schedule/room/${editingRoom.id}`, submitData, {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
@@ -91,7 +119,7 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                 }
             });
         } else {
-            post('/admin/schedule/room', {
+            router.post('/admin/schedule/room', submitData, {
                 preserveScroll: true,
                 preserveState: true,
                 onSuccess: () => {
@@ -245,9 +273,14 @@ export default function RoomTable({ rooms = [], selectedRoomId = null, onSelectR
                                         value={data.capacity}
                                         onChange={(e) => setData('capacity', e.target.value)}
                                         placeholder="Contoh: 120"
-                                        className="quenza-input"
+                                        className={`quenza-input ${(errors.capacity || capacityWarning) ? 'border-red-400 focus:ring-red-400 focus:border-red-400' : ''}`}
                                     />
-                                    {errors.capacity && <p className="text-red-600 text-xs mt-1">{errors.capacity}</p>}
+                                    {(errors.capacity || capacityWarning) && (
+                                        <p className="text-red-600 text-xs mt-1.5 font-medium flex items-center gap-1">
+                                            <span>⚠️</span>
+                                            <span>{errors.capacity || capacityWarning}</span>
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-quenza-small font-quenza-semibold text-quenza-text-secondary mb-1.5">

@@ -56,9 +56,13 @@ class ScheduleController extends Controller
             'event_days' => 'required|integer|min:1',
             'start_time' => 'required|string',
             'end_time' => 'required|string',
-            'presenter_duration' => 'required|integer|min:1',
+            'presenter_duration' => 'required|integer|min:3',
             'break_duration' => 'required|integer|min:0',
             'presenter_count' => 'required|integer|min:0',
+        ], [
+            'event_days.min' => 'Jumlah Hari harus lebih dari 0',
+            'event_days.gt' => 'Jumlah Hari harus lebih dari 0',
+            'presenter_duration.min' => 'Durasi/Presenter minimal 3 menit',
         ]);
 
         $start = strlen($validated['start_time']) === 5 ? $validated['start_time'].':00' : $validated['start_time'];
@@ -93,9 +97,13 @@ class ScheduleController extends Controller
             'event_days' => 'required|integer|min:1',
             'start_time' => 'required|string',
             'end_time' => 'required|string',
-            'presenter_duration' => 'required|integer|min:1',
+            'presenter_duration' => 'required|integer|min:3',
             'break_duration' => 'required|integer|min:0',
             'presenter_count' => 'required|integer|min:0',
+        ], [
+            'event_days.min' => 'Jumlah Hari harus lebih dari 0',
+            'event_days.gt' => 'Jumlah Hari harus lebih dari 0',
+            'presenter_duration.min' => 'Durasi/Presenter minimal 3 menit',
         ]);
 
         $start = strlen($validated['start_time']) === 5 ? $validated['start_time'].':00' : $validated['start_time'];
